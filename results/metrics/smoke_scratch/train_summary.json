@@ -1,0 +1,14 @@
+{
+  "run": {
+    "run_name": "smoke_scratch",
+    "mode": "scratch",
+    "temperature": null,
+    "alpha": 1.0
+  },
+  "best_val_loss": 5.26950511932373,
+  "best_val_ppl": 194.31977354539723,
+  "steps": 60,
+  "tokens": 122880,
+  "wall_clock_s": 13.4,
+  "peak_mem_mb": 1189.1
+}

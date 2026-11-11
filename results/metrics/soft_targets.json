@@ -1,0 +1,158 @@
+[
+  {
+    "prompt": "Once upon a time, there was a little",
+    "top_tokens": [
+      "' girl'",
+      "' boy'",
+      "' bird'",
+      "' bunny'",
+      "' dog'",
+      "' fish'"
+    ],
+    "temps": {
+      "1": {
+        "top_probs": [
+          0.6836,
+          0.1919,
+          0.0226,
+          0.0161,
+          0.0098,
+          0.0084
+        ],
+        "entropy_bits": 1.88,
+        "effective_choices": 3.7,
+        "mass_outside_top10": 0.0481
+      },
+      "2": {
+        "top_probs": [
+          0.0924,
+          0.049,
+          0.0168,
+          0.0142,
+          0.0111,
+          0.0103
+        ],
+        "entropy_bits": 10.45,
+        "effective_choices": 1400.5,
+        "mass_outside_top10": 0.7753
+      },
+      "4": {
+        "top_probs": [
+          0.0045,
+          0.0033,
+          0.0019,
+          0.0018,
+          0.0015,
+          0.0015
+        ],
+        "entropy_bits": 12.75,
+        "effective_choices": 6884.9,
+        "mass_outside_top10": 0.9804
+      }
+    }
+  },
+  {
+    "prompt": "Tom was sad because",
+    "top_tokens": [
+      "' he'",
+      "' his'",
+      "' it'",
+      "' the'",
+      "' she'",
+      "' no'"
+    ],
+    "temps": {
+      "1": {
+        "top_probs": [
+          0.8149,
+          0.1316,
+          0.0334,
+          0.0079,
+          0.0031,
+          0.0008
+        ],
+        "entropy_bits": 0.99,
+        "effective_choices": 2.0,
+        "mass_outside_top10": 0.0063
+      },
+      "2": {
+        "top_probs": [
+          0.2192,
+          0.0881,
+          0.0444,
+          0.0216,
+          0.0135,
+          0.0068
+        ],
+        "entropy_bits": 8.63,
+        "effective_choices": 396.4,
+        "mass_outside_top10": 0.5847
+      },
+      "4": {
+        "top_probs": [
+          0.0081,
+          0.0052,
+          0.0037,
+          0.0026,
+          0.002,
+          0.0014
+        ],
+        "entropy_bits": 12.65,
+        "effective_choices": 6423.6,
+        "mass_outside_top10": 0.972
+      }
+    }
+  },
+  {
+    "prompt": "Lily and her mom went to the",
+    "top_tokens": [
+      "' park'",
+      "' store'",
+      "' zoo'",
+      "' beach'",
+      "' shop'",
+      "' market'"
+    ],
+    "temps": {
+      "1": {
+        "top_probs": [
+          0.3975,
+          0.2121,
+          0.0632,
+          0.0449,
+          0.0306,
+          0.0267
+        ],
+        "entropy_bits": 3.68,
+        "effective_choices": 12.8,
+        "mass_outside_top10": 0.1643
+      },
+      "2": {
+        "top_probs": [
+          0.0435,
+          0.0318,
+          0.0174,
+          0.0146,
+          0.0121,
+          0.0113
+        ],
+        "entropy_bits": 10.87,
+        "effective_choices": 1876.4,
+        "mass_outside_top10": 0.8354
+      },
+      "4": {
+        "top_probs": [
+          0.003,
+          0.0026,
+          0.0019,
+          0.0017,
+          0.0016,
+          0.0015
+        ],
+        "entropy_bits": 12.74,
+        "effective_choices": 6819.7,
+        "mass_outside_top10": 0.9824
+      }
+    }
+  }
+]

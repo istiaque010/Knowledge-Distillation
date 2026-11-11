@@ -1,0 +1,30 @@
+# A few steps with the real student and real data, to find bugs in about a minute before a long run.
+run_name: smoke
+seed: 1337
+data:
+  data_dir: ../project1/data/full
+  tokenizer: ../project1/teacher/tokenizer.json
+model:
+  n_layer: 4
+  n_head: 4
+  n_embd: 256
+  block_size: 256
+  dropout: 0.1
+  bias: true
+train:
+  device: auto
+  precision: fp32
+  batch_size: 8
+  grad_accum_steps: 1
+  max_steps: 60
+  lr: 6.0e-4
+  min_lr: 6.0e-5
+  warmup_steps: 10
+  weight_decay: 0.1
+  betas: [0.9, 0.95]
+  grad_clip: 1.0
+  eval_interval: 30
+  eval_batches: 10
+  log_interval: 10
+  ckpt_interval: 1000
+  num_workers: 0

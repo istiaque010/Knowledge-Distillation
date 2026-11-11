@@ -1,0 +1,73 @@
+{
+  "run": "student_kd_T2_a0.25",
+  "checkpoint": "checkpoints\\student_kd_T2_a0.25\\model_best.pt",
+  "step": 3000,
+  "val_loss": 2.1320521382474182,
+  "val_perplexity": 8.432153012241319,
+  "test_loss": 2.13231039187424,
+  "test_perplexity": 8.434330927553805,
+  "closeness": {
+    "kl_teacher": 0.3211916611238822,
+    "top1_agreement": 0.7291702001356852,
+    "tokens": 2264064
+  },
+  "generation": {
+    "setting": "top_p_0.95",
+    "n": 40,
+    "distinct_1": 0.3088127503798867,
+    "distinct_1_std": 0.008774416468805293,
+    "distinct_2": 0.7390090696025212,
+    "distinct_2_std": 0.007727841981993953,
+    "rep4_rate": 0.025579705539669234,
+    "repetition_flag_rate": 0.175,
+    "eos_rate": 0.925,
+    "hit_token_limit_rate": 0.075,
+    "avg_new_tokens": 215.625,
+    "madeup_rate": 0.00027419797093501506,
+    "madeup_examples": [
+      "fually",
+      "sosaurs"
+    ],
+    "known_words": 23116
+  },
+  "error_analysis": {
+    "setting": "top_p_0.90",
+    "n": 60,
+    "csv": "results\\generations\\student_kd_T2_a0.25\\error_analysis.csv",
+    "auto_flag_counts": {
+      "repetition": 15,
+      "incomplete": 3,
+      "hit_token_limit": 3
+    }
+  },
+  "params": {
+    "total": 5322240,
+    "trainable": 5322240,
+    "non_embedding": 3159552
+  },
+  "model_size_mb_fp32": 20.302734375,
+  "reference_real_stories": {
+    "n": 10995,
+    "distinct_1": 0.33079274060478947,
+    "distinct_1_std": 0.015455023615485798,
+    "distinct_2": 0.7640953404476193,
+    "distinct_2_std": 0.026180771085929654,
+    "rep4_rate": 0.016413961582654783,
+    "rep4_flag_threshold": 0.05693333568232272,
+    "proper_ending_rate": 0.9874488403819918
+  },
+  "peak_mem_mb": 1323.09765625,
+  "env": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 198 Stepping 2, GenuineIntel",
+    "cpu_count": 24,
+    "ram_gb": 63.7,
+    "torch": "2.14.1+cpu",
+    "device": "cpu",
+    "torch_threads": 24,
+    "cuda_available": false,
+    "hip_version": null,
+    "cuda_version": null
+  }
+}

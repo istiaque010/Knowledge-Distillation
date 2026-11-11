@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Distillation of a Small Language Model</title>
+<meta name="description" content="Project 2 tutorial: a smaller student model learns to copy the Project 1 teacher with knowledge distillation, on a CPU. Every step, why, the result, and how it led to the next step.">
+<style>
+:root {
+  --bg: #f7f6f3; --surface: #ffffff; --surface-2: #f1efea; --text: #1f2328; --muted: #5d6470;
+  --border: #e2ded6; --accent: #2f6fdb; --accent-soft: #e6eefc; --good: #1f8a4c; --good-soft: #e3f4ea;
+  --warn: #b26a00; --warn-soft: #fdf1dc; --bad: #c0392b; --bad-soft: #fbe6e3; --code-bg: #f3f1ec;
+  --teacher: #7a4fd0; --scratch: #d95926; --kd: #1f8a4c; --kd2: #2a78d6; --kd3: #c2477e; --kd4: #a88700;
+  --grid: #e1e0d9; --axis: #c3c2b7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171b; --surface: #1d2026; --surface-2: #242830; --text: #e7e9ee; --muted: #a0a7b4;
+    --border: #323742; --accent: #7aa7ff; --accent-soft: #1f2b44; --good: #5cc98a; --good-soft: #17301f;
+    --warn: #f0b45a; --warn-soft: #33281a; --bad: #ff8a7a; --bad-soft: #3a1f1c; --code-bg: #262a32;
+    --teacher: #b394ff; --scratch: #f08a4b; --kd: #5cc98a; --kd2: #6fa8ff; --kd3: #ee7aab; --kd4: #d6c34a;
+    --grid: #2c2f36; --axis: #3e434d;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171b; --surface: #1d2026; --surface-2: #242830; --text: #e7e9ee; --muted: #a0a7b4;
+  --border: #323742; --accent: #7aa7ff; --accent-soft: #1f2b44; --good: #5cc98a; --good-soft: #17301f;
+  --warn: #f0b45a; --warn-soft: #33281a; --bad: #ff8a7a; --bad-soft: #3a1f1c; --code-bg: #262a32;
+  --teacher: #b394ff; --scratch: #f08a4b; --kd: #5cc98a; --kd2: #6fa8ff; --kd3: #ee7aab; --kd4: #d6c34a;
+  --grid: #2c2f36; --axis: #3e434d;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.88em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+pre code { background: none; padding: 0; }
+h1, h2, h3, h4 { line-height: 1.25; }
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 32px; max-width: 1180px;
+  margin: 0 auto; padding: 24px 16px 80px; }
+nav.toc { position: sticky; top: 16px; align-self: start; max-height: calc(100vh - 32px); overflow-y: auto; font-size: 14px; }
+nav.toc h4 { margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
+nav.toc a { display: block; padding: 4px 10px; border-left: 2px solid var(--border); color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a.active { color: var(--accent); border-left-color: var(--accent); }
+nav.toc .group { margin: 14px 0 4px; font-weight: 600; color: var(--text); font-size: 13px; }
+main { min-width: 0; }
+header.hero { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; }
+header.hero h1 { margin: 0 0 8px; font-size: 30px; }
+header.hero p { margin: 6px 0; color: var(--muted); max-width: 72ch; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--good-soft); color: var(--good); }
+section { margin-top: 36px; }
+section > h2 { font-size: 24px; margin: 0 0 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 18px; }
+.stat { background: var(--surface-2); border-radius: 10px; padding: 14px; }
+.stat .v { font-size: 26px; font-weight: 700; }
+.stat .l { font-size: 13px; color: var(--muted); }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.flow span.box { background: var(--accent-soft); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
+.flow span.box.t { background: color-mix(in srgb, var(--teacher) 18%, var(--surface)); }
+.flow span.box.s { background: color-mix(in srgb, var(--kd) 18%, var(--surface)); }
+.flow span.arrow { color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 10px 0; }
+.tw { overflow-x: auto; }
+th, td { border-bottom: 1px solid var(--border); padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.phase { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-top: 22px; }
+.phase-head { display: flex; gap: 14px; align-items: center; }
+.phase-num { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--surface); font-weight: 700; font-size: 17px; }
+.phase-head h3 { margin: 0; font-size: 21px; }
+.phase-head .sub { color: var(--muted); font-size: 14px; }
+.part { margin-top: 16px; }
+.part > h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.part p { margin: 6px 0; }
+.part ul { margin: 6px 0; padding-left: 22px; }
+.analogy { background: var(--surface-2); border-radius: 10px; padding: 10px 14px; font-size: 15px; }
+.analogy::before { content: "Think of it like this: "; font-weight: 600; }
+.decide { background: var(--good-soft); border-left: 4px solid var(--good); border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+.decide h4 { margin: 0 0 6px; color: var(--good); font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
+.decide p, .decide ul { margin: 4px 0; }
+.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); border-radius: 8px; padding: 10px 14px; margin-top: 12px; }
+.warn b { color: var(--warn); }
+.note { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 14px; margin-top: 12px; }
+.bar { height: 10px; border-radius: 5px; background: var(--accent); display: inline-block; vertical-align: middle; }
+.bar.bad { background: var(--bad); } .bar.good { background: var(--good); }
+.theme-btn { float: right; background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; }
+.gloss dt { font-weight: 600; margin-top: 10px; }
+.gloss dd { margin: 2px 0 0 0; color: var(--muted); }
+.gloss .grp { margin-top: 18px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); font-weight: 700; }
+/* ideas + demos */
+.idea { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-top: 22px; }
+.idea > h3 { margin: 0 0 4px; font-size: 21px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.idea > h3 .tag { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+.idea .lead { color: var(--muted); margin: 0 0 8px; }
+.demo { background: var(--surface-2); border-radius: 12px; padding: 16px; margin-top: 14px; }
+.demo-title { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.demo-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.btn { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.on { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.bars { display: grid; grid-template-columns: max-content minmax(0, 1fr) 62px; gap: 6px 10px; align-items: center; margin-top: 8px; }
+.bars .lab { font-family: ui-monospace, Consolas, monospace; font-size: 14px; white-space: pre; }
+.bars .track { height: 14px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.bars .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--kd2); transition: width .45s ease; }
+.bars .fill.rest { background: var(--axis); }
+.bars .fill.win { background: var(--good); }
+.bars .fill.t { background: var(--teacher); }
+.bars .val { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.facts { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.facts b { color: var(--text); }
+input[type=range] { width: 100%; max-width: 420px; accent-color: var(--accent); }
+.stackbar { display: flex; height: 34px; border-radius: 6px; overflow: hidden; margin-top: 10px; background: var(--border); }
+.stackbar div { display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 600; transition: width .35s; white-space: nowrap; overflow: hidden; }
+.pkg { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 12px; }
+.pkg > div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.pkg > div b { display: block; font-family: ui-monospace, Consolas, monospace; font-size: 13.5px; margin-bottom: 2px; }
+.pkg > div .use { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.scale { position: relative; height: 70px; margin: 18px 10px 6px; }
+.scale .line { position: absolute; left: 0; right: 0; top: 30px; height: 4px; border-radius: 2px; background: var(--border); }
+.scale .seg { position: absolute; top: 30px; height: 4px; background: var(--good); }
+.scale .pt { position: absolute; top: 22px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; border: 3px solid var(--surface); }
+.scale .pl { position: absolute; top: 48px; transform: translateX(-50%); font-size: 12.5px; white-space: nowrap; text-align: center; }
+.scale .pl.up { top: 0; }
+.story { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 10px; font-family: Georgia, "Times New Roman", serif; font-size: 15.5px; }
+.story .who { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.story mark { background: var(--bad-soft); color: var(--bad); border-radius: 3px; padding: 0 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.legend button { font: inherit; font-size: 13px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 3px 10px; border-radius: 99px; cursor: pointer; }
+.legend button[aria-pressed="false"] { opacity: .4; }
+.legend i { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+svg.chart text { fill: var(--muted); font-size: 12px; font-family: system-ui, sans-serif; }
+svg.chart .gridl { stroke: var(--grid); stroke-width: 1; }
+#tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.15); opacity: 0; transition: opacity .12s; z-index: 10; max-width: 260px; }
+.ts-wrap { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+.ts-wrap .arrow-big { font-size: 28px; color: var(--muted); text-align: center; }
+.student .fill { animation: learn 4s ease-in-out infinite; }
+@keyframes learn { 0% { width: var(--start); } 60%, 100% { width: var(--end); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .student .fill { width: var(--end); }
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  nav.toc { position: static; max-height: none; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  header.hero { padding: 20px; }
+  header.hero h1 { font-size: 24px; }
+  .phase, .idea { padding: 18px 16px; }
+  .two { grid-template-columns: 1fr; }
+  .ts-wrap { grid-template-columns: 1fr; }
+  .ts-wrap .arrow-big { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" id="toc" aria-label="Contents">
+  <h4>Contents</h4>
+  <a href="#overview">The big picture</a>
+  <div class="group">Start here: basic ideas</div>
+  <a href="#b-recap">1. What Project 1 built</a>
+  <a href="#b-kd">2. Knowledge distillation</a>
+  <a href="#b-soft">3. Hard labels and soft targets</a>
+  <a href="#b-temp">4. Softmax and temperature</a>
+  <a href="#b-ce">5. Cross-entropy and KL</a>
+  <a href="#b-loss">6. The distillation loss</a>
+  <a href="#b-freeze">7. Freezing the teacher</a>
+  <a href="#b-fair">8. Baseline and a fair test</a>
+  <a href="#b-gap">9. Gap closed</a>
+  <a href="#b-cost">10. Compression and speed</a>
+  <div class="group">From Project 1 to Project 2</div>
+  <a href="#handover">What Project 1 had to provide</a>
+  <div class="group">The project</div>
+  <a href="#results">Final results</a>
+  <a href="#map">Decision map</a>
+  <div class="group">Part A: Prepare</div>
+  <a href="#p1">1. Reuse the teacher</a>
+  <a href="#p2">2. Environment</a>
+  <a href="#p3">3. Freeze the teacher</a>
+  <a href="#p4">4. Design the student</a>
+  <div class="group">Part B: Train</div>
+  <a href="#p5">5. Baseline student</a>
+  <a href="#p6">6. Soft targets</a>
+  <a href="#p7">7. Distillation loss</a>
+  <a href="#p8">8. Distilled student</a>
+  <a href="#p9">9. Ablations</a>
+  <div class="group">Part C: Measure</div>
+  <a href="#p10">10. Quality</a>
+  <a href="#p11">11. Size and speed</a>
+  <a href="#p12">12. Stories side by side</a>
+  <a href="#p13">13. Error analysis</a>
+  <div class="group">Part D: Conclude</div>
+  <a href="#p14">14. Final comparison</a>
+  <a href="#lessons">Lessons learned</a>
+  <a href="#glossary">Glossary</a>
+</nav>
+
+<main>
+
+<header class="hero" id="overview">
+  <button class="theme-btn" id="themeBtn" type="button">Light / dark</button>
+  <span class="badge">All 14 phases done</span>
+  <h1>Knowledge Distillation of a Small Autoregressive Language Model</h1>
+  <p style="margin-top:0;font-size:19px;color:var(--text)">Teaching a smaller model to write stories by copying a bigger one</p>
+  <p style="margin-top:0"><b>Project 2 tutorial</b></p>
+  <p>In Project 1 we built a 13.9-million-parameter story-writing model from scratch. Here it becomes the
+    <b>teacher</b>. We train a model <b>2.6× smaller</b>, the <b>student</b>, to copy it, and measure what the
+    student keeps and what it loses. Everything runs on a normal computer's CPU.</p>
+  <p>This page explains every step: <b>what</b> we did, <b>why</b>, what <b>result</b> we got, and
+    <b>how that result told us what to do next</b>. You don't need to read Project 1 first. Idea 1 recaps it.</p>
+
+  <h3 style="margin-top:22px">The one question</h3>
+  <p style="color:var(--text)"><b>How much can the model be compressed through knowledge distillation while keeping its
+    text-generation quality?</b></p>
+
+  <h3 style="margin-top:22px">The one idea behind everything</h3>
+  <p>Normally a model learns only "the next word was <i>girl</i>". In distillation, the student also learns what
+    the teacher <i>thought</i>:</p>
+<pre><code>Real text says:     next word = "girl"                                (one answer)
+Teacher thinks:     girl 68% · boy 19% · bird 2% · bunny 2% · …          (a full opinion)
+Student learns:     to match the teacher's whole opinion, not just the one answer</code></pre>
+
+  <h3 style="margin-top:22px">The pipeline (the order we did things in)</h3>
+  <div class="flow">
+    <span class="box t">Project 1 teacher</span><span class="arrow">→</span>
+    <span class="box">Check &amp; freeze it</span><span class="arrow">→</span>
+    <span class="box">Design a student</span><span class="arrow">→</span>
+    <span class="box">Student without teacher</span><span class="arrow">→</span>
+    <span class="box">Distillation loss</span><span class="arrow">→</span>
+    <span class="box s">Distilled student</span><span class="arrow">→</span>
+    <span class="box">Try other settings</span><span class="arrow">→</span>
+    <span class="box">Measure quality &amp; speed</span><span class="arrow">→</span>
+    <span class="box">Read the stories</span><span class="arrow">→</span>
+    <span class="box">Final answer</span>
+  </div>
+</header>
+
+<!-- ===================== BASIC IDEAS ===================== -->
+<section id="basics">
+  <h2>Start here: the basic ideas</h2>
+  <div class="card">
+    <p>This part explains, one by one, the ideas and words used in the project. Most figures can be played with:
+      press the buttons, move the sliders, or point at things.</p>
+    <p><b>The numbers in the figures are real.</b> They come from our trained teacher and our trained students, not
+      from a textbook.</p>
+  </div>
+
+  <!-- 1 -->
+  <div class="idea" id="b-recap">
+    <h3><span class="tag">Idea 1</span> What Project 1 built (the teacher)</h3>
+    <p class="lead">A program that guesses the next piece of text, and gives a chance to every possible guess.</p>
+    <p>Project 1 built a <b>language model</b>: a Transformer (GPT-style) with 6 layers and 13.9 million
+      <b>parameters</b> (numbers that training adjusts). It reads text cut into <b>tokens</b> (words or pieces of words;
+      it knows 8,192 of them) and, at every position, outputs a <b>probability for each of the 8,192 tokens</b>.
+      To write a story it picks a token, adds it, and guesses again.</p>
+    <p>It was trained for 9.9 hours on 1.77 million children's stories (TinyStories) and scores a
+      <b>test perplexity of 5.74</b>. Roughly, it is choosing between about 6 likely tokens at each step. Lower is better.</p>
+    <p class="analogy">an experienced storyteller who has read 1.7 million children's books. Ask "Once upon a
+      time, there was a little…" and they will say "girl, probably, or maybe boy".</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="idea" id="b-kd">
+    <h3><span class="tag">Idea 2</span> What is knowledge distillation?</h3>
+    <p class="lead">A small model (student) learns by copying a big trained model (teacher).</p>
+    <p>A big model is accurate but slow and heavy. A small model is fast and light but, trained on its own, less
+      accurate. <b>Knowledge distillation</b> (KD) trains the small model to copy the big model's <i>outputs</i>.
+      The aim is to get most of the big model's quality at the small model's cost.</p>
+    <ul>
+      <li>The <b>teacher</b> is already trained and is <b>frozen</b>: it never changes. It only gives answers.</li>
+      <li>The <b>student</b> has fewer parameters. It is the only model that learns.</li>
+      <li>After training, you throw the teacher away and use only the student.</li>
+    </ul>
+    <p class="analogy">an apprentice learning from a master chef. The apprentice can't memorise every dish the
+      master has ever cooked, but by tasting the master's dishes and copying the master's judgement, they learn much
+      faster than from a recipe book alone.</p>
+    <div class="demo">
+      <div class="demo-title">The student learns to copy the teacher's chances (animation, real teacher numbers)</div>
+      <div class="ts-wrap">
+        <div><b>Teacher (13.9M)</b> after "…there was a little"
+          <div class="bars" id="tsTeacher"></div></div>
+        <div class="arrow-big" aria-hidden="true">→</div>
+        <div class="student"><b>Student (5.3M)</b>, learning
+          <div class="bars" id="tsStudent"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="idea" id="b-soft">
+    <h3><span class="tag">Idea 3</span> Hard labels and soft targets</h3>
+    <p class="lead">One right answer, or a ranked opinion about every answer?</p>
+    <p>A <b>hard label</b> is what the real text says: the next word was "girl". It is 100% "girl", and every other
+      word counts as equally wrong. "Boy" (a fine answer) is punished as much as "refrigerator" (a silly one).</p>
+    <p>A <b>soft target</b> is the teacher's full probability list. It says "girl" is best, "boy" is close,
+      "bird" is possible, and "refrigerator" is nearly impossible. This extra information about the wrong answers
+      is sometimes called <b>dark knowledge</b>.</p>
+    <div class="two">
+      <div class="demo"><div class="demo-title">Hard label (from the real text)</div><div class="bars" id="hardBars"></div></div>
+      <div class="demo"><div class="demo-title">Soft target (from the teacher)</div><div class="bars" id="softBars"></div></div>
+    </div>
+    <p class="demo-note">With hard labels, one training example teaches one fact. With soft targets, it teaches how
+      similar thousands of words are to each other. That is why a student can learn faster from a teacher than from
+      the raw text.</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="idea" id="b-temp">
+    <h3><span class="tag">Idea 4</span> Softmax and temperature (T)</h3>
+    <p class="lead">Turning up the temperature makes the teacher's opinion easier to read.</p>
+    <p>The model first gives every token a raw score called a <b>logit</b>. <b>Softmax</b> turns the scores into
+      probabilities that add up to 100%. A trained teacher is very confident, so most of the probability sits on 1–2
+      tokens and the rest are tiny numbers. The useful "dark knowledge" is hidden in those tiny numbers.</p>
+    <p>The <b>temperature T</b> divides the scores before softmax. T = 1 is normal. T &gt; 1 flattens the
+      distribution, so the small probabilities grow and the student can see them.</p>
+<pre><code>p(token) = exp(score / T) / sum of exp(all scores / T)</code></pre>
+    <div class="demo">
+      <div class="demo-title">The teacher's real probabilities (Phase 6). Pick a prompt and a temperature.</div>
+      <div class="controls" id="tPrompt" style="margin-top:0"></div>
+      <div class="controls" id="tTemp"></div>
+      <div class="bars" id="tBars" aria-live="polite"></div>
+      <div class="facts" id="tFacts"></div>
+      <div class="demo-note">At T = 1, only 5% of the probability lies outside the top 10 tokens. At T = 2 it is 78%,
+        spread over the whole vocabulary. That is what the student gets to learn from.</div>
+    </div>
+    <p class="analogy">a teacher who whispers. At T = 1 you can only hear their favourite answer. Turning up T is
+      like turning up the volume: now you hear their second, third and hundredth choice too.</p>
+  </div>
+
+  <!-- 5 -->
+  <div class="idea" id="b-ce">
+    <h3><span class="tag">Idea 5</span> Two ways to measure "how wrong": cross-entropy and KL divergence</h3>
+    <p class="lead">One compares the student with the real text, the other compares it with the teacher.</p>
+    <p><b>Cross-entropy (CE)</b> is the normal language-model loss from Project 1. It looks only at the probability
+      the student gave the correct token: <code>CE = −log p(correct token)</code>. If the student gives "girl" 50%,
+      CE = 0.69; at 90%, CE = 0.11. Lower is better.</p>
+    <p><b>KL divergence</b> measures how different two whole probability lists are. <code>KL(teacher ‖ student)</code>
+      is 0 when the student's list is exactly the teacher's, and grows as they differ. It is never negative. In this
+      project, it is also our main measure of <b>how close a student is to the teacher</b>.</p>
+    <div class="tw"><table>
+      <tr><th></th><th>Compares the student with…</th><th>Uses</th><th>Lower means</th></tr>
+      <tr><td>Cross-entropy</td><td>the real next token</td><td>one number (p of the right token)</td><td>better at real text</td></tr>
+      <tr><td>KL divergence</td><td>the teacher's whole list</td><td>all 8,192 probabilities</td><td>closer to the teacher</td></tr>
+    </table></div>
+  </div>
+
+  <!-- 6 -->
+  <div class="idea" id="b-loss">
+    <h3><span class="tag">Idea 6</span> The distillation loss: α, T and T²</h3>
+    <p class="lead">Mix both losses, and choose how much each one counts.</p>
+<pre><code>Loss = α · CE(student, real token)  +  (1 − α) · T² · KL(teacher_T ‖ student_T)</code></pre>
+    <ul>
+      <li><b>α (alpha)</b> sets the mix. α = 1 means "ignore the teacher" (normal training). α = 0.5 is half and half.
+        α = 0.25 leans mostly on the teacher.</li>
+      <li><b>T</b> is the temperature from Idea 4. Both teacher and student are softened by the same T.</li>
+      <li><b>T²</b>: softening makes the KL part's pull on the student about T² times weaker. Multiplying by T² puts
+        it back, so changing T doesn't secretly change the mix.</li>
+    </ul>
+    <div class="demo">
+      <div class="demo-title">Real numbers: an untrained student on one real batch (Phase 7). Move α, pick T.</div>
+      <div class="controls" id="lossT" style="margin-top:0"></div>
+      <div class="controls"><label for="alpha" style="font-size:14px">α = <b id="alphaV">0.50</b></label>
+        <input type="range" id="alpha" min="0" max="1" step="0.05" value="0.5" aria-label="alpha"></div>
+      <div class="stackbar" id="lossBar"></div>
+      <div class="facts" id="lossFacts"></div>
+      <div class="demo-note">CE is 9.05 for every T (it doesn't use T). The KD part changes a lot with T. Without
+        the T² factor, at T = 4 it would almost vanish (0.25).</div>
+    </div>
+<pre><code>def distillation_loss(student_logits, teacher_logits, targets, temperature=2.0, alpha=0.5):
+    ce = F.cross_entropy(student_logits.reshape(-1, V), targets.reshape(-1))
+    log_ps = F.log_softmax(student_logits / temperature, dim=-1)   # student, softened
+    log_pt = F.log_softmax(teacher_logits / temperature, dim=-1)   # teacher, softened
+    kd = F.kl_div(log_ps, log_pt, log_target=True, reduction="batchmean")
+    return alpha * ce + (1 - alpha) * temperature**2 * kd          # (file: kd/distillation.py)</code></pre>
+  </div>
+
+  <!-- 7 -->
+  <div class="idea" id="b-freeze">
+    <h3><span class="tag">Idea 7</span> Freezing the teacher</h3>
+    <p class="lead">The teacher must give the same answer every time, and must never learn.</p>
+    <p>During one training step the same text goes into both models. Only the student is updated:</p>
+<pre><code>text ─→ teacher (frozen, no gradient) ─→ teacher probabilities ─┐
+     └→ student                       ─→ student probabilities ─┴→ distillation loss ─→ update the STUDENT only</code></pre>
+    <p>"Frozen" means four things, and Project 2 does all four:</p>
+    <ul>
+      <li><b>Eval mode</b>: turns <b>dropout</b> off. Dropout randomly switches off parts of the model during training; left on, the teacher's answers would change randomly.</li>
+      <li><b><code>requires_grad = False</code></b>: the teacher's weights can't be changed by training.</li>
+      <li><b><code>torch.no_grad()</code></b>: PyTorch doesn't even record the teacher's maths for training, which also saves memory and time.</li>
+      <li><b>Hash check</b>: the file <code>teacher.pt</code> is compared with Project 1's fingerprint list before use, so we know it is exactly the teacher that scored 5.74.</li>
+    </ul>
+    <div class="warn"><b>Why it matters:</b> in Phase 3 we broke it on purpose. With dropout on, the teacher's answers to
+      the same text differed by up to <b>6.4</b> in score. With gradients on, the student's loss reached
+      <b>all 76</b> of the teacher's weight tensors. Neither mistake gives an error message.</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="idea" id="b-fair">
+    <h3><span class="tag">Idea 8</span> The baseline and a fair test</h3>
+    <p class="lead">"The student scored 8.59" means nothing unless you know what it would score without the teacher.</p>
+    <p>The <b>baseline</b> is the same student, trained the normal way (α = 1, no teacher). The experiment is
+      <b>student with teacher vs student without teacher</b>. Everything else is kept identical:</p>
+    <ul>
+      <li>the same size (4 layers, 5.3M parameters) and the same code;</li>
+      <li>the same data <b>in the same order</b> (same random seed, 1337);</li>
+      <li>the same number of steps (3,000), batch, learning-rate schedule and optimizer;</li>
+      <li>the same tests: the same test stories, prompts, seeds and error rules.</li>
+    </ul>
+    <p>Only the loss differs. So any difference in the result is caused by the teacher.</p>
+    <p class="analogy">testing a new fertiliser. You plant two identical seeds in identical pots with the same water
+      and light, and give the fertiliser to only one. Otherwise you can't tell what made the plant grow.</p>
+  </div>
+
+  <!-- 9 -->
+  <div class="idea" id="b-gap">
+    <h3><span class="tag">Idea 9</span> "Gap closed": one number for how much distillation helped</h3>
+    <p class="lead">The teacher is the goal and the baseline is the start. How far did distillation move the student?</p>
+<pre><code>gap closed = (PPL_baseline − PPL_distilled) / (PPL_baseline − PPL_teacher)</code></pre>
+    <div class="demo">
+      <div class="demo-title">Test perplexity (lower is better): real results</div>
+      <div class="scale" id="gapScale"></div>
+      <div class="demo-note">(9.63 − 8.59) / (9.63 − 5.74) = <b>26.7%</b> of the gap closed, with no extra parameters
+        and no extra data. With the best setting found (α = 0.25, perplexity 8.43) it is <b>30.7%</b>.</div>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="idea" id="b-cost">
+    <h3><span class="tag">Idea 10</span> Compression and speed</h3>
+    <p class="lead">What do we gain by being small?</p>
+    <ul>
+      <li><b>Compression ratio</b> = teacher parameters ÷ student parameters = 13.89M ÷ 5.32M = <b>2.61×</b>.</li>
+      <li><b>Latency</b>: seconds to write a 200-token story. <b>Speedup</b> = teacher latency ÷ student latency.</li>
+      <li><b>Tokens per second</b>: how many tokens the model writes (or scores) each second.</li>
+      <li><b>Peak RAM</b>: the most memory the program uses. On a GPU this would be "GPU memory".</li>
+    </ul>
+    <p>Writing one token at a time has a fixed overhead (Python, sampling, starting many small calculations), so a
+      2.6× smaller model is "only" about <b>1.8×</b> faster at writing. When scoring lots of text at once, the CPU
+      does real maths and the student is <b>2.4–2.8×</b> faster, close to its size ratio.</p>
+  </div>
+</section>
+
+<!-- ===================== HANDOVER ===================== -->
+<section id="handover">
+  <h2>What Project 1 had to provide for distillation</h2>
+  <div class="card">
+    <p>Distillation needs a teacher that is <b>finished, fixed and reproducible</b>. Project 1's last phase
+      (Phase 14, "Package as the teacher") built the folder <code>project1/teacher/</code> for exactly this. Project 2
+      <b>reads it and never changes it</b>. Here is each piece and why distillation needs it:</p>
+    <div class="pkg">
+      <div><b>teacher.pt</b>The trained weights (53 MB), saved without the optimizer's memory.
+        <div class="use">Used for: the teacher's probabilities in every training step.</div></div>
+      <div><b>tokenizer.json</b>The 8,192-token vocabulary.
+        <div class="use">Used for: <i>everything</i>. Teacher and student must cut text into exactly the same tokens, or the teacher's probability for token 645 would mean a different word to the student.</div></div>
+      <div><b>src/ (model.py, …)</b>The model code (the GPT class), data loading, training helpers, story writing and evaluation.
+        <div class="use">Used for: building the student with the <i>same code</i> (just smaller), and evaluating it exactly the same way.</div></div>
+      <div><b>data/full/ (train / val / test .bin)</b>The cleaned stories as token IDs, with the fixed 10,995-story test set.
+        <div class="use">Used for: training on the same data, and scoring on the same test stories, so 5.74 and 8.59 can be compared.</div></div>
+      <div><b>MANIFEST.sha256</b>A fingerprint (SHA-256 hash) of every file.
+        <div class="use">Used for: proving before each run that the teacher hasn't changed.</div></div>
+      <div><b>results/ (eval.json, error_analysis.csv, …)</b>The teacher's scores, the real-story reference numbers, and its 60 hand-labelled stories.
+        <div class="use">Used for: the teacher's column in every table, and checking that our re-evaluation gives the same numbers.</div></div>
+      <div><b>load_teacher.py, verify_teacher.py</b>Helpers that load the teacher and re-check its score.
+        <div class="use">Used for: showing how to load it. Project 2's own <code>kd/teacher.py</code> and <code>scripts/check_teacher.py</code> do the same load-and-check, adding the freezing steps.</div></div>
+      <div><b>requirements.lock.txt</b>The exact library versions.
+        <div class="use">Used for: making Project 2's environment match, so numbers don't drift (Phase 2).</div></div>
+    </div>
+    <h3 style="margin-top:20px">The Project 1 decisions that made Project 2 possible</h3>
+    <ul>
+      <li><b>A clean, fixed test set</b> that was never used for choices. Without it, "gap closed" would be meaningless.</li>
+      <li><b>A known-good decoding setting</b> (top-p 0.95) and fixed seeds, so all models write stories under identical conditions.</li>
+      <li><b>Written-down limits</b> (88% of the teacher's stories have a contradiction). A student can't be expected to beat its teacher, so these set honest expectations.</li>
+      <li><b>A baseline of the same shape</b> (4 layers, width 256) already tried in Project 1 (perplexity 9.68 on 100K stories). Project 2's student uses the same shape.</li>
+    </ul>
+    <div class="warn"><b>Rule:</b> Project 2 never writes anything into <code>project1/</code>. If the teacher changed,
+      every comparison would be broken.</div>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section id="results">
+  <h2>Final results at a glance</h2>
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><div class="v">2.61×</div><div class="l">smaller: 13.9M → 5.3M parameters, 53 → 20 MB</div></div>
+      <div class="stat"><div class="v">~1.8×</div><div class="l">faster at writing a story (1.04 s → 0.59 s)</div></div>
+      <div class="stat"><div class="v">8.59</div><div class="l">test perplexity of the distilled student (no teacher: 9.63, teacher: 5.74)</div></div>
+      <div class="stat"><div class="v">26.7%</div><div class="l">of the gap to the teacher closed (30.7% with the best setting)</div></div>
+      <div class="stat"><div class="v">~2 h</div><div class="l">to train one distilled student on the CPU</div></div>
+      <div class="stat"><div class="v">T=2, α=0.25</div><div class="l">best setting found</div></div>
+    </div>
+    <div class="tw"><table style="margin-top:18px">
+      <tr><th></th><th class="num">Teacher</th><th class="num">Student, no teacher</th><th class="num">Distilled student (T = 2, α = 0.5)</th></tr>
+      <tr><td>Parameters</td><td class="num">13.89M</td><td class="num">5.32M</td><td class="num">5.32M</td></tr>
+      <tr><td><b>Test perplexity</b></td><td class="num"><b>5.74</b></td><td class="num">9.63</td><td class="num"><b>8.59</b></td></tr>
+      <tr><td>KL to the teacher (closeness)</td><td class="num">0</td><td class="num">0.481</td><td class="num">0.349</td></tr>
+      <tr><td>Same top-1 token as the teacher</td><td class="num">100%</td><td class="num">69.4%</td><td class="num">72.3%</td></tr>
+      <tr><td>200-token story</td><td class="num">1.04 s</td><td class="num">0.57 s</td><td class="num">0.59 s</td></tr>
+      <tr><td>Stories with a grammar error</td><td class="num">37%</td><td class="num">80%</td><td class="num">67%</td></tr>
+      <tr><td>Stories with a character error</td><td class="num">55%</td><td class="num">85%</td><td class="num">73%</td></tr>
+      <tr><td>Stories with a contradiction</td><td class="num">88%</td><td class="num">100%</td><td class="num">100%</td></tr>
+      <tr><td>Training</td><td class="num">10,000 steps, 9.9 h</td><td class="num">3,000 steps, 1.3 h</td><td class="num">3,000 steps, 2.0 h</td></tr>
+    </table></div>
+    <p><b>In one sentence:</b> distillation makes a 2.6× smaller model clearly better than training it alone, and it
+      writes in the teacher's style, but it can't hold a whole story together the way the teacher can.</p>
+  </div>
+</section>
+
+<section id="map">
+  <h2>Decision map: how each result led to the next step</h2>
+  <div class="card tw">
+    <table>
+      <tr><th>#</th><th>Question we asked</th><th>What the result said</th><th>So we decided…</th></tr>
+      <tr><td>1</td><td>Is the teacher exactly the one from Project 1?</td><td>Hashes match, test perplexity 5.74 again</td><td>Use it as the teacher</td></tr>
+      <tr><td>2</td><td>Is the environment the same?</td><td>Same versions, same smoke-test numbers</td><td>Numbers can be compared with Project 1</td></tr>
+      <tr><td>3</td><td>Is the teacher truly frozen?</td><td>5 tests pass, and fail when freezing is removed</td><td>Safe to train students next to it</td></tr>
+      <tr><td>4</td><td>How big a student, and how long will it take?</td><td>4 layers: 1.3 h alone, 2 h with the teacher</td><td>4 layers, 5.3M; 3,000 steps per run</td></tr>
+      <tr><td>5</td><td>What does the student reach without a teacher?</td><td>Validation perplexity 9.87</td><td>This is the score to beat</td></tr>
+      <tr><td>6</td><td>Do the teacher's soft targets carry information?</td><td>At T = 2, 58–84% of probability is outside the top 10</td><td>Use T = 2 first</td></tr>
+      <tr><td>7</td><td>Is the loss correct?</td><td>7 tests pass</td><td>Train the distilled student</td></tr>
+      <tr><td>8</td><td>Does distillation help?</td><td>8.79 vs 9.87 at the same 3,000 steps</td><td>Yes, so find which settings matter</td></tr>
+      <tr><td>9</td><td>Which T and α are best?</td><td>T = 2 ≈ 4 &gt; 1; lower α is better (best α = 0.25)</td><td>Keep the pre-chosen T = 2, α = 0.5 as the main result; report the rest</td></tr>
+      <tr><td>10</td><td>How good on the full test set?</td><td>5.74 / 9.63 / 8.59: 26.7% of the gap closed</td><td>Measure the cost side next</td></tr>
+      <tr><td>11</td><td>Is it really cheaper?</td><td>2.61× smaller, ~1.8× faster</td><td>Now check the stories themselves</td></tr>
+      <tr><td>12</td><td>Do the stories look different?</td><td>Distilled student writes like the teacher</td><td>Count errors properly, blind</td></tr>
+      <tr><td>13</td><td>Which skills are lost?</td><td>Story-level consistency (100% contradictions)</td><td>Write the final answer</td></tr>
+      <tr><td>14</td><td>What is the answer?</td><td>See "Final results"</td><td>Project 2 is finished</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== PHASES ===================== -->
+<div class="note" style="margin-top:28px">All commands are run from the <code>project2</code> folder with its
+  <code>.venv</code> active (Windows). Project 2 sits next to Project 1:
+<pre style="margin:8px 0 0"><code>Projrcts List/
+├── project1/    teacher/  data/full/          ← read only
+└── project2/    configs/  kd/  scripts/  tests/  results/  checkpoints/</code></pre></div>
+
+<!-- P1 -->
+<div class="phase" id="p1">
+  <div class="phase-head"><div class="phase-num">1</div><div><h3>Reuse Project 1 as the teacher</h3>
+    <div class="sub">Make sure the teacher is exactly the one we trained</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>Every result in Project 2 is measured against the teacher's 5.74. If the teacher file or the data had changed
+      even slightly, all comparisons would be wrong. So the first job is to load the teacher and check it.</p>
+    <p class="analogy">a new teacher's first day: check their certificate before they start teaching.</p>
+  </div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>..\project1\.venv\Scripts\python.exe scripts\check_teacher.py</code></pre>
+    <p>It checks every file's fingerprint against <code>MANIFEST.sha256</code>, checks that the data is the same,
+      counts the parameters, re-scores the test set and writes a short story.</p>
+  </div>
+  <div class="part"><h4>Result</h4>
+    <ul><li>All 5 checks pass; 13,891,584 parameters.</li>
+      <li>Test loss 1.7473, <b>perplexity 5.74</b>; validation 5.74, the same as Project 1 ✅</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4>
+    <p>The teacher is confirmed. (This phase borrowed Project 1's Python environment, because Project 2 didn't have one
+      yet.) Next: build Project 2's own environment.</p></div>
+</div>
+
+<!-- P2 -->
+<div class="phase" id="p2">
+  <div class="phase-head"><div class="phase-num">2</div><div><h3>Environment and requirements</h3>
+    <div class="sub">The same tools as Project 1, in a separate box</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>Project 2 gets its own environment, so the two projects can't break each other. It uses the <b>same versions</b>,
+      because a different PyTorch version could change the numbers slightly.</p>
+  </div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m venv .venv
+.venv\Scripts\activate
+pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+python scripts\env_report.py</code></pre>
+  </div>
+  <div class="part"><h4>Result</h4>
+    <ul><li>Python 3.12.10, PyTorch 2.14.1 (CPU), the same as Project 1. Intel Core Ultra 7, 24 threads, 64 GB RAM.</li>
+      <li>A tiny training test: loss 6.257 → 0.538, <b>identical</b> to Project 1. The tokenizer gives the same IDs.</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4><p>The tools match. Before training anything next to the teacher, make sure it can't change.</p></div>
+</div>
+
+<!-- P3 -->
+<div class="phase" id="p3">
+  <div class="phase-head"><div class="phase-num">3</div><div><h3>Freeze the teacher</h3>
+    <div class="sub">Eval mode, no gradients, and tests that prove it</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>See <a href="#b-freeze">Idea 7</a>. The code is in <code>kd/teacher.py</code>. Mistakes here are silent:
+      training would run, but the teacher would be noisy or would slowly change.</p>
+  </div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m pytest tests\test_teacher_frozen.py -v</code></pre>
+  </div>
+  <div class="part"><h4>Result</h4>
+    <ul><li>5 tests pass: the teacher gives scores for a real batch; it is in eval mode with every parameter frozen;
+      calling <code>.train()</code> can't switch dropout back on; the same batch gives identical scores twice; and a student
+      training step never changes the teacher.</li>
+      <li><b>We broke it on purpose to prove the tests work:</b> with dropout on, scores differed by up to 6.4; with
+        gradients on, 76 of 76 teacher tensors received gradients. The tests caught both.</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4><p>A test you have never seen fail proves nothing. These failed when they should, so the teacher is safe. Next: choose the student.</p></div>
+</div>
+
+<!-- P4 -->
+<div class="phase" id="p4">
+  <div class="phase-head"><div class="phase-num">4</div><div><h3>Design a smaller student</h3>
+    <div class="sub">Pick a size and measure the cost before spending hours</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>The student uses the teacher's code with fewer layers and a smaller width. It must use the <b>same tokenizer</b>
+      (8,192 tokens) and the same context length (256). Before training, we timed each option, because during
+      distillation the teacher runs too, which costs extra time.</p>
+  </div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python scripts\benchmark.py --config configs\student.yaml                  # student alone
+python scripts\benchmark.py --config configs\student.yaml --with_teacher   # student + teacher</code></pre>
+  </div>
+  <div class="part"><h4>Result</h4>
+    <div class="tw"><table>
+      <tr><th>Option</th><th class="num">Tokens / s</th><th class="num">Time for 3,000 steps</th><th class="num">Peak RAM</th></tr>
+      <tr><td>4 layers alone</td><td class="num">10,532</td><td class="num">1 h 17 m</td><td class="num">966 MB</td></tr>
+      <tr><td>4 layers + teacher (distillation)</td><td class="num">6,780</td><td class="num">2 h 00 m</td><td class="num">1,370 MB</td></tr>
+      <tr><td>3 layers alone</td><td class="num">13,107</td><td class="num">1 h 02 m</td><td class="num">—</td></tr>
+      <tr><td>3 layers + teacher</td><td class="num">8,498</td><td class="num">1 h 36 m</td><td class="num">—</td></tr>
+    </table></div>
+    <p>The teacher makes each step about <b>1.55× slower</b>. We chose <b>4 layers, 4 heads, width 256: 5,322,240 parameters</b>.</p>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4>
+    <p>4 layers matches the guide and Project 1's baseline shape. The full plan (10,000 steps per student) would take
+      27–42 hours on this CPU, so every student gets the <b>same 3,000-step budget</b> (~49M tokens). That is fair,
+      because they are all compared with each other. First: the student without a teacher.</p></div>
+</div>
+
+<!-- P5 -->
+<div class="phase" id="p5">
+  <div class="phase-head"><div class="phase-num">5</div><div><h3>Student-from-scratch baseline</h3>
+    <div class="sub">The score distillation has to beat</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>See <a href="#b-fair">Idea 8</a>. We train the student the normal way (cross-entropy only, no teacher), with exactly the
+      settings the distilled students will use. Settings: <code>configs/student.yaml</code>: batch 64 × 256 tokens,
+      learning rate 6e-4 → 6e-5, AdamW, seed 1337.</p>
+  </div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m kd.train_student --config configs\smoke.yaml --mode scratch     # 15-second test: loss must go down
+python -m kd.train_student --config configs\student.yaml --mode scratch   # the real run</code></pre>
+  </div>
+  <div class="part"><h4>Result</h4>
+    <ul><li>77.5 minutes; peak RAM 1.7 GB.</li>
+      <li>Validation perplexity: 41.8 (step 250) → 23.7 → 15.2 (1,000) → 10.9 (2,000) → <b>9.87</b> (3,000). No overfitting.</li>
+      <li>KL to the teacher fell from 1.93 to 0.48, even without seeing the teacher, because both learn the same language.</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4><p>We have the number to beat: 9.87. Before training with the teacher, look at what the teacher actually offers.</p></div>
+</div>
+
+<!-- P6 -->
+<div class="phase" id="p6">
+  <div class="phase-head"><div class="phase-num">6</div><div><h3>Understand teacher soft targets</h3>
+    <div class="sub">Look at what the student will learn from</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>See <a href="#b-temp">Idea 4</a>. If the teacher's opinion were all on one token, distillation would add nothing
+      beyond the real text. We checked how much information sits outside the top choice.</p>
+  </div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python scripts\show_soft_targets.py --prompt "Once upon a time, there was a little" --prompt "Tom was sad because" --prompt "Lily and her mom went to the"</code></pre>
+  </div>
+  <div class="part"><h4>Result</h4>
+    <div class="tw"><table>
+      <tr><th>Prompt</th><th class="num">T = 1: top token</th><th class="num">T = 1: outside top 10</th><th class="num">T = 2: outside top 10</th><th class="num">T = 4: outside top 10</th></tr>
+      <tr><td>…there was a little</td><td class="num">girl 68%</td><td class="num">5%</td><td class="num">78%</td><td class="num">98%</td></tr>
+      <tr><td>Tom was sad because</td><td class="num">he 81%</td><td class="num">1%</td><td class="num">58%</td><td class="num">97%</td></tr>
+      <tr><td>Lily and her mom went to the</td><td class="num">park 40%</td><td class="num">16%</td><td class="num">84%</td><td class="num">98%</td></tr>
+    </table></div>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4>
+    <p>T = 2 reveals a lot (58–84% outside the top 10) while keeping the ranking clear, so it is the main setting.
+      We predicted T = 4 might be <i>too</i> flat. (Phase 9 showed this prediction was wrong.) Next: write the loss and test it.</p></div>
+</div>
+
+<!-- P7 -->
+<div class="phase" id="p7">
+  <div class="phase-head"><div class="phase-num">7</div><div><h3>Implement the distillation loss</h3>
+    <div class="sub">Write it, then prove it is right</div></div></div>
+  <div class="part"><h4>What and why</h4><p>See <a href="#b-loss">Idea 6</a>. Code: <code>kd/distillation.py</code>. A wrong sign or a missing T² would still train. It would just train badly, so it needs tests.</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m pytest tests\test_distillation.py -v -s</code></pre></div>
+  <div class="part"><h4>Result</h4>
+    <ul><li>7 tests pass: KD is 0 when student = teacher; α = 1 is exactly normal cross-entropy; KD is never negative;
+      it matches the formula written out by hand; the T² mix is correct; gradients reach the student but never the teacher;
+      and it works on a real batch.</li>
+      <li>On a real batch an untrained student has CE 9.05. The teacher has 1.67 on the same batch.</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4><p>The loss is correct. Train the distilled student with T = 2, α = 0.5.</p></div>
+</div>
+
+<!-- P8 -->
+<div class="phase" id="p8">
+  <div class="phase-head"><div class="phase-num">8</div><div><h3>Train the distilled student</h3>
+    <div class="sub">Same everything as Phase 5, except the loss</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>The teacher runs live in every step. Saving its answers in advance would need 8,192 numbers × 49M tokens
+      ≈ <b>1.6 TB</b>, which isn't practical.</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m kd.train_student --config configs\smoke.yaml --mode kd                                 # 20-second test
+python -m kd.train_student --config configs\student.yaml --mode kd --temperature 2 --alpha 0.5   # the real run</code></pre></div>
+  <div class="part"><h4>Result</h4>
+    <div class="tw"><table>
+      <tr><th class="num">Step</th><th class="num">No teacher</th><th class="num">Distilled (T = 2, α = 0.5)</th></tr>
+      <tr><td class="num">250</td><td class="num">41.79</td><td class="num">44.91</td></tr>
+      <tr><td class="num">500</td><td class="num">23.70</td><td class="num">22.73</td></tr>
+      <tr><td class="num">1,000</td><td class="num">15.18</td><td class="num">13.20</td></tr>
+      <tr><td class="num">2,000</td><td class="num">10.88</td><td class="num">9.55</td></tr>
+      <tr><td class="num"><b>3,000</b></td><td class="num"><b>9.87</b></td><td class="num"><b>8.79</b></td></tr>
+    </table></div>
+    <ul><li>Validation perplexity 8.79 vs 9.87 (11% lower). Training time 1 h 59 m, as predicted in Phase 4.</li>
+      <li>The distilled student reaches 9.87 at about step 1,900: <b>~37% fewer steps</b>.</li>
+      <li>Even given the same <i>clock time</i> as the baseline (77 minutes), it was at ~9.7, still slightly ahead.</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4><p>Distillation clearly helps. But was T = 2, α = 0.5 a lucky choice? Change one setting at a time.</p></div>
+</div>
+
+<!-- P9 -->
+<div class="phase" id="p9">
+  <div class="phase-head"><div class="phase-num">9</div><div><h3>Distillation ablations</h3>
+    <div class="sub">Change one setting at a time</div></div></div>
+  <div class="part"><h4>What and why</h4><p>An <b>ablation</b> changes one setting and keeps everything else fixed, to see how much that setting matters.
+    We tried three temperatures and three values of α. Each run takes ~2 h.</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m kd.train_student --config configs\student.yaml --mode kd --temperature 1 --alpha 0.5
+python -m kd.train_student --config configs\student.yaml --mode kd --temperature 4 --alpha 0.5
+python -m kd.train_student --config configs\student.yaml --mode kd --temperature 2 --alpha 0.25
+python -m kd.train_student --config configs\student.yaml --mode kd --temperature 2 --alpha 0.75
+python scripts\plot_curves.py --run student_scratch --run student_kd_T2_a0.5 ...</code></pre>
+    <p><code>scripts\run_remaining.ps1</code> and <code>scripts\run_alpha.ps1</code> run these one after another overnight, then evaluate them.</p></div>
+  <div class="part"><h4>Result: validation perplexity during training</h4>
+    <div class="legend" id="legend"></div>
+    <svg class="chart" id="chart" viewBox="0 0 640 330" role="img" aria-label="Validation perplexity against training step for each run"></svg>
+    <div class="two" style="margin-top:12px">
+      <div class="tw"><table>
+        <tr><th>Temperature (α = 0.5)</th><th class="num">Test perplexity</th></tr>
+        <tr><td>no teacher</td><td class="num">9.63</td></tr>
+        <tr><td>T = 1</td><td class="num">8.75</td></tr>
+        <tr><td>T = 2</td><td class="num">8.59</td></tr>
+        <tr><td>T = 4</td><td class="num">8.60</td></tr>
+      </table></div>
+      <div class="tw"><table>
+        <tr><th>α (T = 2)</th><th class="num">Test perplexity</th><th class="num">Gap closed</th></tr>
+        <tr><td>1.0 (no teacher)</td><td class="num">9.63</td><td class="num">0%</td></tr>
+        <tr><td>0.75</td><td class="num">9.08</td><td class="num">14.1%</td></tr>
+        <tr><td>0.5</td><td class="num">8.59</td><td class="num">26.7%</td></tr>
+        <tr><td><b>0.25</b></td><td class="num"><b>8.43</b></td><td class="num"><b>30.7%</b></td></tr>
+      </table></div>
+    </div>
+    <ul><li><b>Every setting beats no teacher</b> by a wide margin.</li>
+      <li><b>T = 2 and T = 4 tie</b>; T = 1 is weaker (at T = 1 the teacher's opinion is mostly its top 1–2 tokens).</li>
+      <li><b>The more weight on the teacher, the better</b>: α 0.75 → 0.5 → 0.25 improves at every step.</li></ul>
+  </div>
+  <div class="decide"><h4>How we decided the next step</h4>
+    <p>The main comparison <b>stays at T = 2, α = 0.5</b>, because it was chosen before any results were seen. Picking the best run
+      afterwards and calling it "the result" would overstate the effect. α = 0.25 is reported as the best setting found.
+      Next: score every model properly on the full test set.</p></div>
+</div>
+
+<!-- P10 -->
+<div class="phase" id="p10">
+  <div class="phase-head"><div class="phase-num">10</div><div><h3>Evaluate language-modelling quality</h3>
+    <div class="sub">The full test set, exactly as Project 1 did it</div></div></div>
+  <div class="part"><h4>What and why</h4><p>The training numbers above use a small part of the validation set. The final score uses all 10,995
+    test stories (2.26M tokens) with Project 1's exact method, so the teacher's number can be compared directly.</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python -m kd.evaluate --model teacher
+python -m kd.evaluate --ckpt checkpoints\student_scratch\model_best.pt
+python -m kd.evaluate --ckpt checkpoints\student_kd_T2_a0.5\model_best.pt</code></pre></div>
+  <div class="part"><h4>Result</h4>
+    <ul><li>The teacher re-scores <b>5.7392</b>, identical to Project 1, and its sample stories are word-for-word the same, so the method is the same.</li>
+      <li>Test perplexity: teacher 5.74, no teacher 9.63, distilled <b>8.59</b>: <b>26.7% of the gap closed</b> (<a href="#b-gap">Idea 9</a>).</li>
+      <li>Same top-1 token as the teacher: 69.4% → 72.3%. Variety of wording (Distinct-2) is the same for all three (~0.74–0.75).</li></ul></div>
+  <div class="decide"><h4>How we decided the next step</h4><p>Quality is measured. Is the student actually cheaper to run?</p></div>
+</div>
+
+<!-- P11 -->
+<div class="phase" id="p11">
+  <div class="phase-head"><div class="phase-num">11</div><div><h3>Evaluate compression and efficient inference</h3>
+    <div class="sub">Size, memory and speed</div></div></div>
+  <div class="part"><h4>What and why</h4><p>See <a href="#b-cost">Idea 10</a>. Each model runs in its own process on an idle PC. The result counts as reliable only if
+    other programs use ≤ 15% of the CPU (a lesson from Project 1, whose first speed check was wrong).</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python scripts\benchmark_inference.py --model teacher --ckpt checkpoints\student_scratch\model_best.pt --ckpt checkpoints\student_kd_T2_a0.5\model_best.pt</code></pre></div>
+  <div class="part"><h4>Result</h4>
+    <div class="tw"><table>
+      <tr><th></th><th class="num">Weights</th><th class="num">200-token story</th><th class="num">Writing speed</th><th class="num">Scoring speed</th><th class="num">RAM for the model</th></tr>
+      <tr><td>Teacher</td><td class="num">53.0 MB</td><td class="num">1.04 s</td><td class="num">193 tok/s</td><td class="num">36,002 tok/s</td><td class="num">129 MB</td></tr>
+      <tr><td>Student, no teacher</td><td class="num">20.3 MB</td><td class="num">0.57 s</td><td class="num">352 tok/s</td><td class="num">99,329 tok/s</td><td class="num">94 MB</td></tr>
+      <tr><td>Distilled student</td><td class="num">20.3 MB</td><td class="num">0.59 s</td><td class="num">339 tok/s</td><td class="num">86,838 tok/s</td><td class="num">95 MB</td></tr>
+    </table></div>
+    <p>The two students are the same size, so their small speed differences are measurement noise. <b>Distillation changes the weights, not the cost.</b></p></div>
+  <div class="decide"><h4>How we decided the next step</h4><p>The numbers are good. But numbers aren't enough (a Project 1 lesson), so read the stories.</p></div>
+</div>
+
+<!-- P12 -->
+<div class="phase" id="p12">
+  <div class="phase-head"><div class="phase-num">12</div><div><h3>Compare text generation</h3>
+    <div class="sub">Same prompt, same seed, three models</div></div></div>
+  <div class="part"><h4>What and why</h4><p>With the same prompt, the same random seed and the same decoding (top-p 0.95), only the model differs.</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python scripts\compare_generations.py --run teacher --run student_scratch --run student_kd_T2_a0.5 --num_samples 2</code></pre></div>
+  <div class="part"><h4>Result: "Once upon a time" (problems marked)</h4>
+    <div class="story"><div class="who" style="color:var(--teacher)">Teacher</div>…there was a soft little bunny named Benny. Benny loved to hop around in the forest with his friends. One day, Benny saw a big, tough carrot. He wanted to eat it, but his friends warned him that it was not safe to eat it…</div>
+    <div class="story"><div class="who" style="color:var(--scratch)">Student, no teacher</div>…there was a soft little bird named Grender. He lived in a forest. One day, <mark>rhinoceros wanted to see what it was</mark>. He heard a noise of a crack from the street. <mark>This scared a bird was so big</mark> that it flew away and the little mouse got hurt…</div>
+    <div class="story"><div class="who" style="color:var(--kd)">Distilled student</div>…there was a big little bird named Blue. Blue loved to soar high in the sky with his friends. One day, Blue saw a thin rock on the ground. It was green and it looked so pretty. Blue wanted to touch it, but he didn't know what to do. So, a wise owl called the bird who needed help. <mark>Tweetie</mark> flew to the tree…</div>
+    <ul style="margin-top:12px"><li>The distilled student writes <b>in the teacher's style</b>: a clear opening, dialogue, a problem and a "moral of the story" ending.</li>
+      <li>The baseline is jumpier and more often ungrammatical.</li>
+      <li>Both students lose track of names (Blue becomes Tweetie). The teacher does this less often.</li></ul></div>
+  <div class="decide"><h4>How we decided the next step</h4><p>These are impressions from reading the stories, knowing which model wrote each one. Count the errors properly, and blind.</p></div>
+</div>
+
+<!-- P13 -->
+<div class="phase" id="p13">
+  <div class="phase-head"><div class="phase-num">13</div><div><h3>Error analysis</h3>
+    <div class="sub">Which skills were lost when the teacher was compressed?</div></div></div>
+  <div class="part"><h4>What and why</h4>
+    <p>60 stories per model, labelled by hand with <b>Project 1's strict rules</b> (one slip anywhere counts):</p>
+    <ul><li><b>Contradiction:</b> something clashes with an earlier fact or doesn't follow from it.</li>
+      <li><b>Grammar:</b> at least one broken sentence or made-up word.</li>
+      <li><b>Entity consistency:</b> a character changes name, gender or species, or the wrong character speaks.</li></ul>
+    <p>To avoid bias, the two students' 120 stories were <b>shuffled together under hidden IDs</b> and labelled <b>blind</b>.
+      To check that today's labels match Project 1's, 20 teacher stories were re-labelled: 14–16 of 16 agreed.</p></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python scripts\error_counts.py --run teacher --run student_scratch --run student_kd_T2_a0.5</code></pre></div>
+  <div class="part"><h4>Result</h4>
+    <div class="tw"><table>
+      <tr><th>Stories with…</th><th class="num">Teacher</th><th class="num">No teacher</th><th class="num">Distilled</th><th style="width:30%"></th></tr>
+      <tr><td>Contradiction</td><td class="num">88%</td><td class="num">100%</td><td class="num">100%</td><td><span class="bar bad" style="width:100%"></span></td></tr>
+      <tr><td>Character error</td><td class="num">55%</td><td class="num">85%</td><td class="num">73%</td><td><span class="bar bad" style="width:73%"></span></td></tr>
+      <tr><td>Grammar error</td><td class="num">37%</td><td class="num">80%</td><td class="num">67%</td><td><span class="bar" style="width:67%"></span></td></tr>
+      <tr><td>Repetition (automatic)</td><td class="num">22%</td><td class="num">7%</td><td class="num">20%</td><td><span class="bar" style="width:20%"></span></td></tr>
+      <tr><td>No error at all</td><td class="num">5 / 60</td><td class="num">0 / 60</td><td class="num">0 / 60</td><td></td></tr>
+    </table></div>
+    <ul><li><b>Lost first and most: story-level consistency.</b> All 120 student stories contradict themselves (a key becomes a
+      necklace, then a "bracelet with teeth"). Distillation doesn't fix this.</li>
+      <li><b>Keeping characters apart</b> ("The cat thanked the cat") and <b>grammar</b>: distillation helps a little. With 60 stories
+        the differences are <i>not statistically significant</i> (p ≈ 0.15–0.18), so they are a hint, not proof.</li>
+      <li><b>Copied habits:</b> the distilled student repeats phrases as often as the teacher. Repetition rises with the teacher's
+        weight (4 → 8 → 12 → 15 flagged stories as α goes 1 → 0.75 → 0.5 → 0.25). A student inherits its teacher's flaws.</li></ul></div>
+  <div class="decide"><h4>How we decided the next step</h4><p>We know what is kept and what is lost. Put it all in one table and answer the question.</p></div>
+</div>
+
+<!-- P14 -->
+<div class="phase" id="p14">
+  <div class="phase-head"><div class="phase-num">14</div><div><h3>Final comparison</h3>
+    <div class="sub">One table, built only from saved results</div></div></div>
+  <div class="part"><h4>What we did</h4>
+<pre><code>python scripts\final_table.py --distilled student_kd_T2_a0.5 --ablation student_kd_T1_a0.5 --ablation student_kd_T4_a0.5 --ablation student_kd_T2_a0.25 --ablation student_kd_T2_a0.75</code></pre>
+    <p>It writes <code>results\final_comparison.md</code> by reading the saved result files. No number is typed by hand.</p></div>
+  <div class="part"><h4>Result: the answer</h4>
+    <p><b>The model can be compressed 2.6× (13.9M → 5.3M parameters) and made ~1.8× faster at writing. Distillation makes that
+      small model clearly better than training it alone. It closes 26.7% of the perplexity gap to the teacher (30.7% with the best
+      setting), and it writes in the teacher's style. But the skill that needs the most capacity, keeping a whole story
+      consistent, is lost in compression, and distillation does not bring it back.</b></p>
+    <div class="warn"><b>Limits:</b> one run per setting; every student had 3,000 steps (30% of the teacher's training), so longer
+      training would improve all of them; one person labelled the errors; CPU only.</div></div>
+  <div class="decide"><h4>How we decided we were done</h4><p>Success was defined in advance as "the distilled student keeps clearly more of
+    the teacher's ability than a same-size student trained alone, while being cheaper to run". Both parts hold. <b>Project 2 is finished.</b></p></div>
+</div>
+
+<section id="lessons">
+  <h2>Lessons learned (useful for any ML project)</h2>
+  <div class="card"><ul>
+    <li><b>A teacher must be finished and fixed.</b> Project 1's packaging (weights, tokenizer, code, test set, hashes) made every comparison possible.</li>
+    <li><b>Build the baseline first, with the same budget.</b> "8.59" is only meaningful next to "9.63".</li>
+    <li><b>Freeze, then test that it's frozen, and break it on purpose.</b> These bugs make no noise.</li>
+    <li><b>Measure the cost before you train.</b> Phase 4's 30-second benchmark predicted each 2-hour run to within a minute.</li>
+    <li><b>Fix the main setting in advance.</b> Report the best setting found as an ablation, not as the headline.</li>
+    <li><b>Read the outputs, and label them blind.</b> Perplexity can't tell you that every story contradicts itself.</li>
+    <li><b>A student copies everything,</b> including the teacher's bad habits (repetition).</li>
+  </ul></div>
+</section>
+
+<section id="glossary">
+  <h2>Glossary</h2>
+  <div class="card"><dl class="gloss">
+    <div class="grp">From Project 1</div>
+    <dt>Language model</dt><dd>a program that gives a probability to every possible next token.</dd>
+    <dt>Token / tokenizer</dt><dd>a piece of text with an ID number / the tool that cuts text into tokens (8,192 here).</dd>
+    <dt>Parameter</dt><dd>one number inside the model that training adjusts. Teacher 13.9M, student 5.3M.</dd>
+    <dt>Transformer, layer, head, width</dt><dd>the model design; layers are stacked blocks, heads are parallel attention parts, width is the length of each token's number list (384 teacher, 256 student).</dd>
+    <dt>Logits</dt><dd>the raw scores a model gives each token before softmax.</dd>
+    <dt>Softmax</dt><dd>turns scores into probabilities that add up to 100%.</dd>
+    <dt>Loss / cross-entropy (CE)</dt><dd>how wrong the guess of the real next token was: −log p(correct). Lower is better.</dd>
+    <dt>Perplexity (PPL)</dt><dd>e<sup>loss</sup>: about how many tokens the model is choosing between. Lower is better.</dd>
+    <dt>Train / validation / test</dt><dd>data to learn from / to check progress / for the final score only.</dd>
+    <dt>Checkpoint</dt><dd>a saved copy of a model's parameters.</dd>
+    <dt>Dropout</dt><dd>randomly switching off parts of a model during training to reduce memorising; off in eval mode.</dd>
+    <dt>Top-p sampling</dt><dd>writing by picking only from the smallest set of tokens whose probabilities add up to p (0.95 here).</dd>
+    <dt>Distinct-2</dt><dd>share of different word pairs in a story: a measure of variety.</dd>
+    <div class="grp">New in Project 2</div>
+    <dt>Knowledge distillation (KD)</dt><dd>training a small model (student) to copy the outputs of a big trained model (teacher).</dd>
+    <dt>Teacher / student</dt><dd>the big, frozen, trained model / the small model that learns from it.</dd>
+    <dt>Hard label</dt><dd>the single real next token from the text.</dd>
+    <dt>Soft target</dt><dd>the teacher's full probability list over all tokens.</dd>
+    <dt>Dark knowledge</dt><dd>the information in the teacher's small probabilities for "wrong" tokens (which ones are nearly right).</dd>
+    <dt>Temperature (T)</dt><dd>divides the logits before softmax; T &gt; 1 flattens the probabilities so the small ones show.</dd>
+    <dt>KL divergence</dt><dd>how different two probability lists are; 0 means identical. Our measure of closeness to the teacher.</dd>
+    <dt>α (alpha)</dt><dd>the weight of the real-data loss in the mix; 1 − α goes to copying the teacher.</dd>
+    <dt>T² factor</dt><dd>multiplies the KD part to keep its strength the same whatever T is.</dd>
+    <dt>Frozen</dt><dd>eval mode + no gradients + <code>no_grad</code>: the teacher can't change and always gives the same answer.</dd>
+    <dt>Gradient</dt><dd>the direction to nudge each parameter to lower the loss; only the student's are used.</dd>
+    <dt>Hash (SHA-256)</dt><dd>a fingerprint of a file; if one byte changes, the fingerprint changes.</dd>
+    <dt>Baseline</dt><dd>the same student trained without the teacher: the score to beat.</dd>
+    <dt>Ablation</dt><dd>an experiment that changes one setting to see how much it matters.</dd>
+    <dt>Gap closed</dt><dd>(PPL_baseline − PPL_distilled) / (PPL_baseline − PPL_teacher): how far distillation moved the student toward the teacher.</dd>
+    <dt>Top-1 agreement</dt><dd>how often the student's most likely token is the same as the teacher's.</dd>
+    <dt>Compression ratio</dt><dd>teacher parameters ÷ student parameters (2.61×).</dd>
+    <dt>Latency / speedup</dt><dd>time to write a 200-token story / teacher latency ÷ student latency.</dd>
+    <dt>Blind labelling</dt><dd>judging outputs without knowing which model wrote them, to avoid bias.</dd>
+    <dt>Statistically significant</dt><dd>a difference too large to be explained by chance; with 60 stories, small differences often aren't.</dd>
+  </dl></div>
+</section>
+
+<p style="margin-top:40px;color:var(--muted);font-size:13px">Full details: <code>INSTRUCTIONS.md</code> · Answer: <code>README.md</code> ·
+  All numbers: <code>results/</code> · Teacher: <code>../project1/teacher/</code> · Project 1 tutorial: <code>../project1/tutorial/project1.html</code></p>
+
+</main>
+</div>
+
+<div id="tip" role="tooltip"></div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var tip = $("tip");
+  function showTip(html, ev) {
+    tip.innerHTML = html; tip.style.opacity = 1;
+    var x = ev.clientX + 14, y = ev.clientY + 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    if (x + w > innerWidth - 8) x = ev.clientX - w - 14;
+    if (y + h > innerHeight - 8) y = ev.clientY - h - 14;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.style.opacity = 0; }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function pct(p) { return p >= 0.1 ? (p * 100).toFixed(1) + "%" : p >= 0.001 ? (p * 100).toFixed(2) + "%" : "<0.1%"; }
+  function bars(el, rows, max) {
+    max = max || Math.max.apply(null, rows.map(function (r) { return r.v; }));
+    el.innerHTML = rows.map(function (r) {
+      return '<div class="lab">' + r.lab + '</div><div class="track"><div class="fill ' + (r.cls || "") +
+        '" style="width:' + (100 * r.v / max).toFixed(1) + '%"></div></div><div class="val">' + pct(r.v) + '</div>';
+    }).join("");
+  }
+
+  /* real teacher numbers: results/metrics/soft_targets.json */
+  var SOFT = [
+    { prompt: "…there was a little", tok: [" girl", " boy", " bird", " bunny", " dog", " fish"],
+      t: { "1": { p: [0.6836, 0.1919, 0.0226, 0.0161, 0.0098, 0.0084], H: 1.88, out: 0.0481 },
+           "2": { p: [0.0924, 0.049, 0.0168, 0.0142, 0.0111, 0.0103], H: 10.45, out: 0.7753 },
+           "4": { p: [0.0045, 0.0033, 0.0019, 0.0018, 0.0015, 0.0015], H: 12.75, out: 0.9804 } } },
+    { prompt: "Tom was sad because", tok: [" he", " his", " it", " the", " she", " no"],
+      t: { "1": { p: [0.8149, 0.1316, 0.0334, 0.0079, 0.0031, 0.0008], H: 0.99, out: 0.0063 },
+           "2": { p: [0.2192, 0.0881, 0.0444, 0.0216, 0.0135, 0.0068], H: 8.63, out: 0.5847 },
+           "4": { p: [0.0081, 0.0052, 0.0037, 0.0026, 0.002, 0.0014], H: 12.65, out: 0.972 } } },
+    { prompt: "Lily and her mom went to the", tok: [" park", " store", " zoo", " beach", " shop", " market"],
+      t: { "1": { p: [0.3975, 0.2121, 0.0632, 0.0449, 0.0306, 0.0267], H: 3.68, out: 0.1643 },
+           "2": { p: [0.0435, 0.0318, 0.0174, 0.0146, 0.0121, 0.0113], H: 10.87, out: 0.8354 },
+           "4": { p: [0.003, 0.0026, 0.0019, 0.0017, 0.0016, 0.0015], H: 12.74, out: 0.9824 } } }
+  ];
+  var G = SOFT[0];
+
+  /* Idea 2: teacher -> student animation */
+  bars($("tsTeacher"), G.tok.slice(0, 4).map(function (t, i) { return { lab: t, v: G.t["1"].p[i], cls: "t" }; }), 0.7);
+  var starts = [0.05, 0.4, 0.15, 0.02];
+  $("tsStudent").innerHTML = G.tok.slice(0, 4).map(function (t, i) {
+    var e = G.t["1"].p[i];
+    return '<div class="lab">' + t + '</div><div class="track"><div class="fill" style="--start:' + (starts[i] / 0.7 * 100) +
+      '%;--end:' + (e / 0.7 * 100) + '%;width:' + (e / 0.7 * 100) + '%"></div></div><div class="val">→ ' + pct(e) + '</div>';
+  }).join("");
+
+  /* Idea 3: hard vs soft */
+  bars($("hardBars"), [{ lab: " girl", v: 1, cls: "win" }, { lab: " boy", v: 0.0000001 }, { lab: " bird", v: 0.0000001 }, { lab: " bunny", v: 0.0000001 }], 1);
+  $("hardBars").querySelectorAll(".val").forEach(function (v, i) { if (i) v.textContent = "0%"; });
+  bars($("softBars"), G.tok.slice(0, 4).map(function (t, i) { return { lab: t, v: G.t["1"].p[i], cls: i ? "" : "t" }; }), 1);
+
+  /* Idea 4: temperature demo */
+  var sel = { p: 0, T: "1" };
+  function btns(id, items, key, draw) {
+    $(id).innerHTML = "";
+    items.forEach(function (it) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "btn" + (sel[key] === it.v ? " on" : "");
+      b.textContent = it.l; b.setAttribute("aria-pressed", String(sel[key] === it.v));
+      b.onclick = function () { sel[key] = it.v; draw(); }; $(id).appendChild(b);
+    });
+  }
+  function drawTemp() {
+    btns("tPrompt", SOFT.map(function (s, i) { return { l: "“" + s.prompt + "”", v: i }; }), "p", drawTemp);
+    btns("tTemp", [{ l: "T = 1 (normal)", v: "1" }, { l: "T = 2", v: "2" }, { l: "T = 4", v: "4" }], "T", drawTemp);
+    var s = SOFT[sel.p], d = s.t[sel.T];
+    var rows = s.tok.map(function (t, i) { return { lab: t, v: d.p[i], cls: "t" }; });
+    rows.push({ lab: "outside top 10", v: d.out, cls: "rest" });
+    bars($("tBars"), rows, 1);
+    $("tFacts").innerHTML = "<span>Uncertainty (entropy): <b>" + d.H + " bits</b></span><span>Probability outside the top 10: <b>" + pct(d.out) + "</b></span>";
+  }
+  drawTemp();
+
+  /* Idea 6: loss mixer, Phase 7 real batch (untrained student) */
+  var CE = 9.052, KD = { "1": 7.560, "2": 2.647, "4": 0.246 }, lossSel = { T: "2" };
+  function drawLoss() {
+    $("lossT").innerHTML = "";
+    ["1", "2", "4"].forEach(function (T) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "btn" + (lossSel.T === T ? " on" : "");
+      b.textContent = "T = " + T; b.setAttribute("aria-pressed", String(lossSel.T === T));
+      b.onclick = function () { lossSel.T = T; drawLoss(); }; $("lossT").appendChild(b);
+    });
+    var a = parseFloat($("alpha").value), T = parseFloat(lossSel.T), kd = KD[lossSel.T];
+    var ceP = a * CE, kdP = (1 - a) * T * T * kd, tot = ceP + kdP, scale = 20;
+    $("alphaV").textContent = a.toFixed(2);
+    $("lossBar").innerHTML = '<div style="width:' + (100 * ceP / scale) + '%;background:' + css("--kd2") + '">' + (ceP > 1.2 ? "CE part " + ceP.toFixed(2) : "") + '</div>' +
+      '<div style="width:' + (100 * kdP / scale) + '%;background:' + css("--teacher") + '">' + (kdP > 1.2 ? "teacher part " + kdP.toFixed(2) : "") + '</div>';
+    $("lossFacts").innerHTML = "<span>α · CE = <b>" + a.toFixed(2) + " × 9.05 = " + ceP.toFixed(2) + "</b></span><span>(1 − α) · T² · KL = <b>" +
+      (1 - a).toFixed(2) + " × " + (T * T) + " × " + kd.toFixed(2) + " = " + kdP.toFixed(2) + "</b></span><span>Total loss: <b>" + tot.toFixed(2) + "</b></span>";
+  }
+  $("alpha").addEventListener("input", drawLoss);
+  drawLoss();
+
+  /* Idea 9: gap scale */
+  function drawGap() {
+    var lo = 5, hi = 10.2, x = function (v) { return (100 * (v - lo) / (hi - lo)).toFixed(2) + "%"; };
+    var pts = [{ v: 5.74, c: "--teacher", l: "Teacher<br>5.74" }, { v: 8.43, c: "--kd3", l: "Best (α 0.25)<br>8.43", up: true },
+               { v: 8.59, c: "--kd", l: "Distilled<br>8.59" }, { v: 9.63, c: "--scratch", l: "No teacher<br>9.63" }];
+    $("gapScale").innerHTML = '<div class="line"></div><div class="seg" style="left:' + x(8.59) + ';width:calc(' + x(9.63) + ' - ' + x(8.59) + ')"></div>' +
+      pts.map(function (p) { return '<div class="pt" style="left:' + x(p.v) + ';background:' + css(p.c) + '"></div><div class="pl' + (p.up ? " up" : "") + '" style="left:' + x(p.v) + '">' + p.l + '</div>'; }).join("");
+  }
+  drawGap();
+
+  /* Phase 9: training curves, results/metrics/<run>/log.csv */
+  var RUNS = [
+    { n: "No teacher", c: "--scratch", on: true, d: [[250,41.79],[500,23.7],[750,17.99],[1000,15.18],[1250,13.44],[1500,12.23],[1750,11.47],[2000,10.88],[2250,10.46],[2500,10.17],[2750,9.98],[3000,9.87]] },
+    { n: "T=1, α=0.5", c: "--kd4", on: false, d: [[250,38.4],[500,20.84],[750,15.64],[1000,13.17],[1250,11.79],[1500,10.8],[1750,10.16],[2000,9.74],[2250,9.38],[2500,9.2],[2750,9.04],[3000,8.97]] },
+    { n: "T=2, α=0.5 (main)", c: "--kd", on: true, d: [[250,44.91],[500,22.73],[750,16.2],[1000,13.2],[1250,11.56],[1500,10.6],[1750,10.02],[2000,9.55],[2250,9.23],[2500,9.0],[2750,8.87],[3000,8.79]] },
+    { n: "T=4, α=0.5", c: "--kd2", on: false, d: [[250,42.77],[500,22.09],[750,15.68],[1000,13.01],[1250,11.42],[1500,10.5],[1750,9.94],[2000,9.5],[2250,9.21],[2500,9.01],[2750,8.86],[3000,8.79]] },
+    { n: "T=2, α=0.25 (best)", c: "--kd3", on: true, d: [[250,50.4],[500,23.44],[750,15.86],[1000,12.84],[1250,11.15],[1500,10.25],[1750,9.68],[2000,9.29],[2250,9.03],[2500,8.83],[2750,8.71],[3000,8.64]] },
+    { n: "T=2, α=0.75", c: "--teacher", on: false, d: [[250,42.47],[500,22.76],[750,16.93],[1000,14.1],[1250,12.44],[1500,11.37],[1750,10.7],[2000,10.18],[2250,9.81],[2500,9.55],[2750,9.4],[3000,9.3]] }
+  ];
+  function drawLegend() {
+    $("legend").innerHTML = "";
+    RUNS.forEach(function (r) {
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", String(r.on));
+      b.innerHTML = '<i style="background:' + css(r.c) + '"></i>' + r.n;
+      b.onclick = function () { r.on = !r.on; drawLegend(); drawChart(); }; $("legend").appendChild(b);
+    });
+  }
+  function drawChart() {
+    var W = 640, H = 330, m = { l: 46, r: 14, t: 12, b: 38 }, ymin = Math.log(8), ymax = Math.log(52);
+    var x = function (s) { return m.l + (s - 250) / 2750 * (W - m.l - m.r); };
+    var y = function (v) { return m.t + (ymax - Math.log(v)) / (ymax - ymin) * (H - m.t - m.b); };
+    var o = "";
+    [8, 10, 15, 20, 30, 50].forEach(function (v) { o += '<line class="gridl" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (m.l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>'; });
+    [500, 1000, 1500, 2000, 2500, 3000].forEach(function (s) { o += '<text x="' + x(s) + '" y="' + (H - m.b + 16) + '" text-anchor="middle">' + s + '</text>'; });
+    o += '<text x="' + ((W + m.l) / 2) + '" y="' + (H - 4) + '" text-anchor="middle">training step</text>';
+    o += '<text transform="translate(12,' + ((H - m.b + m.t) / 2) + ') rotate(-90)" text-anchor="middle">validation perplexity (log scale)</text>';
+    RUNS.forEach(function (r) {
+      if (!r.on) return; var c = css(r.c);
+      o += '<polyline fill="none" stroke="' + c + '" stroke-width="2.2" points="' + r.d.map(function (p) { return x(p[0]) + "," + y(p[1]); }).join(" ") + '"/>';
+      r.d.forEach(function (p) { o += '<circle cx="' + x(p[0]) + '" cy="' + y(p[1]) + '" r="4.5" fill="' + c + '" data-t="<b>' + r.n + '</b><br>step ' + p[0] + ': perplexity ' + p[1] + '"/>'; });
+    });
+    $("chart").innerHTML = o;
+    $("chart").querySelectorAll("circle").forEach(function (cn) {
+      cn.addEventListener("mousemove", function (e) { showTip(cn.getAttribute("data-t"), e); });
+      cn.addEventListener("mouseleave", hideTip);
+      cn.addEventListener("click", function (e) { showTip(cn.getAttribute("data-t"), e); });
+    });
+  }
+  drawLegend(); drawChart();
+  window.__redraw = function () { drawLegend(); drawChart(); drawLoss(); drawGap(); };
+})();
+</script>
+<script>
+(function () {
+  var root = document.documentElement;
+  try { var t = localStorage.getItem("p2-theme"); if (t) root.setAttribute("data-theme", t); } catch (e) {}
+  if (window.__redraw) window.__redraw();
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("p2-theme", next); } catch (e) {}
+    if (window.__redraw) window.__redraw();
+  });
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { if (window.__redraw) window.__redraw(); });
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var targets = links.map(function (a) { return document.querySelector(a.getAttribute("href")); });
+  if ("IntersectionObserver" in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) links.forEach(function (l) { l.classList.toggle("active", l.getAttribute("href") === "#" + en.target.id); });
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    targets.forEach(function (t) { if (t) obs.observe(t); });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "teacher": {
+    "contradiction": 53,
+    "grammar": 22,
+    "entity_consistency": 33,
+    "repetition": 13,
+    "incomplete": 4,
+    "hit_token_limit": 4,
+    "no_error": 5,
+    "n": 60
+  },
+  "student_scratch": {
+    "contradiction": 60,
+    "grammar": 48,
+    "entity_consistency": 51,
+    "repetition": 4,
+    "incomplete": 5,
+    "hit_token_limit": 5,
+    "no_error": 0,
+    "n": 60
+  },
+  "student_kd_T2_a0.5": {
+    "contradiction": 60,
+    "grammar": 40,
+    "entity_consistency": 44,
+    "repetition": 12,
+    "incomplete": 4,
+    "hit_token_limit": 4,
+    "no_error": 0,
+    "n": 60
+  }
+}

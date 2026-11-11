@@ -1,0 +1,123 @@
+﻿run=student_scratch mode=scratch T=None alpha=1.0 device=cpu student params=5,322,240 teacher params=13,891,584
+train windows=1,455,445 val windows=8,851
+step    25 | loss 8.5416 | ce 8.5416 | lr 1.00e-04 | 11,588 tok/s | mem 923 MB
+step    50 | loss 7.5285 | ce 7.5285 | lr 2.00e-04 | 11,627 tok/s | mem 931 MB
+step    75 | loss 6.2111 | ce 6.2111 | lr 3.00e-04 | 11,278 tok/s | mem 917 MB
+step   100 | loss 5.2550 | ce 5.2550 | lr 4.00e-04 | 11,571 tok/s | mem 912 MB
+step   125 | loss 4.6812 | ce 4.6812 | lr 5.00e-04 | 11,546 tok/s | mem 951 MB
+step   150 | loss 4.3412 | ce 4.3412 | lr 6.00e-04 | 11,678 tok/s | mem 937 MB
+step   175 | loss 4.1515 | ce 4.1515 | lr 6.00e-04 | 11,107 tok/s | mem 961 MB
+step   200 | loss 4.0116 | ce 4.0116 | lr 6.00e-04 | 11,457 tok/s | mem 943 MB
+step   225 | loss 3.8813 | ce 3.8813 | lr 5.99e-04 | 11,550 tok/s | mem 974 MB
+step   250 | loss 3.8107 | ce 3.8107 | lr 5.98e-04 | 11,427 tok/s | mem 1,110 MB | val 3.7326 ppl 41.79 kl(teacher) 1.9326
+step   275 | loss 3.7274 | ce 3.7274 | lr 5.97e-04 | 11,031 tok/s | mem 990 MB
+step   300 | loss 3.6702 | ce 3.6702 | lr 5.96e-04 | 11,263 tok/s | mem 1,025 MB
+step   325 | loss 3.5750 | ce 3.5750 | lr 5.95e-04 | 11,409 tok/s | mem 1,004 MB
+step   350 | loss 3.5337 | ce 3.5337 | lr 5.94e-04 | 11,443 tok/s | mem 1,013 MB
+step   375 | loss 3.4710 | ce 3.4710 | lr 5.92e-04 | 11,613 tok/s | mem 1,032 MB
+step   400 | loss 3.4266 | ce 3.4266 | lr 5.90e-04 | 11,533 tok/s | mem 1,040 MB
+step   425 | loss 3.3651 | ce 3.3651 | lr 5.88e-04 | 11,425 tok/s | mem 1,020 MB
+step   450 | loss 3.3231 | ce 3.3231 | lr 5.85e-04 | 10,657 tok/s | mem 1,054 MB
+step   475 | loss 3.2752 | ce 3.2752 | lr 5.83e-04 | 10,987 tok/s | mem 1,038 MB
+step   500 | loss 3.2603 | ce 3.2603 | lr 5.80e-04 | 11,692 tok/s | mem 1,206 MB | val 3.1653 ppl 23.70 kl(teacher) 1.3579
+step   525 | loss 3.2294 | ce 3.2294 | lr 5.77e-04 | 11,538 tok/s | mem 1,037 MB
+step   550 | loss 3.1951 | ce 3.1951 | lr 5.74e-04 | 11,398 tok/s | mem 1,098 MB
+step   575 | loss 3.1470 | ce 3.1470 | lr 5.71e-04 | 11,482 tok/s | mem 1,082 MB
+step   600 | loss 3.1363 | ce 3.1363 | lr 5.68e-04 | 11,484 tok/s | mem 1,047 MB
+step   625 | loss 3.1027 | ce 3.1027 | lr 5.64e-04 | 11,131 tok/s | mem 1,092 MB
+step   650 | loss 3.0892 | ce 3.0892 | lr 5.60e-04 | 10,788 tok/s | mem 1,056 MB
+step   675 | loss 3.0357 | ce 3.0357 | lr 5.56e-04 | 11,135 tok/s | mem 1,112 MB
+step   700 | loss 3.0128 | ce 3.0128 | lr 5.52e-04 | 10,919 tok/s | mem 1,064 MB
+step   725 | loss 2.9915 | ce 2.9915 | lr 5.48e-04 | 10,960 tok/s | mem 1,070 MB
+step   750 | loss 3.0031 | ce 3.0031 | lr 5.43e-04 | 10,754 tok/s | mem 1,261 MB | val 2.8896 ppl 17.99 kl(teacher) 1.0760
+step   775 | loss 2.9767 | ce 2.9767 | lr 5.39e-04 | 11,017 tok/s | mem 1,107 MB
+step   800 | loss 2.9417 | ce 2.9417 | lr 5.34e-04 | 11,161 tok/s | mem 1,114 MB
+step   825 | loss 2.9236 | ce 2.9236 | lr 5.29e-04 | 10,762 tok/s | mem 1,117 MB
+step   850 | loss 2.9172 | ce 2.9172 | lr 5.24e-04 | 10,646 tok/s | mem 1,122 MB
+step   875 | loss 2.9078 | ce 2.9078 | lr 5.18e-04 | 10,786 tok/s | mem 1,131 MB
+step   900 | loss 2.8845 | ce 2.8845 | lr 5.13e-04 | 10,731 tok/s | mem 1,153 MB
+step   925 | loss 2.8575 | ce 2.8575 | lr 5.08e-04 | 10,940 tok/s | mem 1,102 MB
+step   950 | loss 2.8306 | ce 2.8306 | lr 5.02e-04 | 10,779 tok/s | mem 1,141 MB
+step   975 | loss 2.8106 | ce 2.8106 | lr 4.96e-04 | 10,413 tok/s | mem 1,169 MB
+step  1000 | loss 2.7970 | ce 2.7970 | lr 4.90e-04 | 10,647 tok/s | mem 1,339 MB | val 2.7198 ppl 15.18 kl(teacher) 0.9048
+step  1025 | loss 2.8088 | ce 2.8088 | lr 4.84e-04 | 10,966 tok/s | mem 1,132 MB
+step  1050 | loss 2.7789 | ce 2.7789 | lr 4.78e-04 | 11,026 tok/s | mem 970 MB
+step  1075 | loss 2.7701 | ce 2.7701 | lr 4.72e-04 | 10,265 tok/s | mem 1,122 MB
+step  1100 | loss 2.7410 | ce 2.7410 | lr 4.65e-04 | 10,401 tok/s | mem 1,152 MB
+step  1125 | loss 2.7593 | ce 2.7593 | lr 4.59e-04 | 10,497 tok/s | mem 1,157 MB
+step  1150 | loss 2.7125 | ce 2.7125 | lr 4.52e-04 | 10,807 tok/s | mem 1,207 MB
+step  1175 | loss 2.7349 | ce 2.7349 | lr 4.45e-04 | 10,970 tok/s | mem 1,187 MB
+step  1200 | loss 2.7004 | ce 2.7004 | lr 4.39e-04 | 10,936 tok/s | mem 1,219 MB
+step  1225 | loss 2.7026 | ce 2.7026 | lr 4.32e-04 | 10,741 tok/s | mem 1,171 MB
+step  1250 | loss 2.6931 | ce 2.6931 | lr 4.25e-04 | 10,979 tok/s | mem 1,358 MB | val 2.5983 ppl 13.44 kl(teacher) 0.7795
+step  1275 | loss 2.6908 | ce 2.6908 | lr 4.18e-04 | 11,148 tok/s | mem 1,176 MB
+step  1300 | loss 2.6793 | ce 2.6793 | lr 4.11e-04 | 10,734 tok/s | mem 1,238 MB
+step  1325 | loss 2.6732 | ce 2.6732 | lr 4.04e-04 | 10,567 tok/s | mem 1,224 MB
+step  1350 | loss 2.6669 | ce 2.6669 | lr 3.97e-04 | 10,737 tok/s | mem 1,235 MB
+step  1375 | loss 2.6511 | ce 2.6511 | lr 3.89e-04 | 11,091 tok/s | mem 1,196 MB
+step  1400 | loss 2.6190 | ce 2.6190 | lr 3.82e-04 | 11,041 tok/s | mem 1,255 MB
+step  1425 | loss 2.6363 | ce 2.6363 | lr 3.75e-04 | 11,133 tok/s | mem 1,280 MB
+step  1450 | loss 2.6245 | ce 2.6245 | lr 3.67e-04 | 11,080 tok/s | mem 1,206 MB
+step  1475 | loss 2.6228 | ce 2.6228 | lr 3.60e-04 | 11,304 tok/s | mem 1,219 MB
+step  1500 | loss 2.6073 | ce 2.6073 | lr 3.53e-04 | 11,117 tok/s | mem 1,400 MB | val 2.5041 ppl 12.23 kl(teacher) 0.6894
+step  1525 | loss 2.6074 | ce 2.6074 | lr 3.45e-04 | 11,081 tok/s | mem 1,221 MB
+step  1550 | loss 2.6016 | ce 2.6016 | lr 3.38e-04 | 11,037 tok/s | mem 1,230 MB
+step  1575 | loss 2.5850 | ce 2.5850 | lr 3.30e-04 | 10,842 tok/s | mem 1,230 MB
+step  1600 | loss 2.5855 | ce 2.5855 | lr 3.23e-04 | 10,945 tok/s | mem 1,239 MB
+step  1625 | loss 2.5633 | ce 2.5633 | lr 3.15e-04 | 10,974 tok/s | mem 1,258 MB
+step  1650 | loss 2.5599 | ce 2.5599 | lr 3.08e-04 | 10,924 tok/s | mem 1,264 MB
+step  1675 | loss 2.5340 | ce 2.5340 | lr 3.01e-04 | 10,786 tok/s | mem 1,249 MB
+step  1700 | loss 2.5500 | ce 2.5500 | lr 2.93e-04 | 10,600 tok/s | mem 1,226 MB
+step  1725 | loss 2.5605 | ce 2.5605 | lr 2.86e-04 | 10,736 tok/s | mem 1,279 MB
+step  1750 | loss 2.5333 | ce 2.5333 | lr 2.79e-04 | 10,586 tok/s | mem 1,441 MB | val 2.4400 ppl 11.47 kl(teacher) 0.6239
+step  1775 | loss 2.5405 | ce 2.5405 | lr 2.71e-04 | 10,708 tok/s | mem 1,266 MB
+step  1800 | loss 2.5165 | ce 2.5165 | lr 2.64e-04 | 10,809 tok/s | mem 1,268 MB
+step  1825 | loss 2.5096 | ce 2.5096 | lr 2.57e-04 | 10,776 tok/s | mem 1,293 MB
+step  1850 | loss 2.5172 | ce 2.5172 | lr 2.50e-04 | 10,867 tok/s | mem 1,296 MB
+step  1875 | loss 2.5130 | ce 2.5130 | lr 2.43e-04 | 10,705 tok/s | mem 1,281 MB
+step  1900 | loss 2.4963 | ce 2.4963 | lr 2.36e-04 | 10,828 tok/s | mem 1,301 MB
+step  1925 | loss 2.4975 | ce 2.4975 | lr 2.29e-04 | 10,436 tok/s | mem 1,026 MB
+step  1950 | loss 2.4914 | ce 2.4914 | lr 2.22e-04 | 10,572 tok/s | mem 1,289 MB
+step  1975 | loss 2.4926 | ce 2.4926 | lr 2.15e-04 | 10,716 tok/s | mem 1,294 MB
+step  2000 | loss 2.4973 | ce 2.4973 | lr 2.08e-04 | 10,649 tok/s | mem 1,469 MB | val 2.3867 ppl 10.88 kl(teacher) 0.5729
+step  2025 | loss 2.4804 | ce 2.4804 | lr 2.02e-04 | 10,575 tok/s | mem 1,330 MB
+step  2050 | loss 2.4745 | ce 2.4745 | lr 1.95e-04 | 10,592 tok/s | mem 1,303 MB
+step  2075 | loss 2.4876 | ce 2.4876 | lr 1.89e-04 | 10,916 tok/s | mem 1,356 MB
+step  2100 | loss 2.4656 | ce 2.4656 | lr 1.83e-04 | 11,147 tok/s | mem 1,307 MB
+step  2125 | loss 2.4608 | ce 2.4608 | lr 1.76e-04 | 10,939 tok/s | mem 1,337 MB
+step  2150 | loss 2.4633 | ce 2.4633 | lr 1.70e-04 | 11,232 tok/s | mem 1,335 MB
+step  2175 | loss 2.4615 | ce 2.4615 | lr 1.64e-04 | 11,308 tok/s | mem 1,369 MB
+step  2200 | loss 2.4427 | ce 2.4427 | lr 1.59e-04 | 10,820 tok/s | mem 1,341 MB
+step  2225 | loss 2.4435 | ce 2.4435 | lr 1.53e-04 | 11,192 tok/s | mem 1,321 MB
+step  2250 | loss 2.4376 | ce 2.4376 | lr 1.47e-04 | 11,200 tok/s | mem 1,444 MB | val 2.3473 ppl 10.46 kl(teacher) 0.5344
+step  2275 | loss 2.4613 | ce 2.4613 | lr 1.42e-04 | 10,523 tok/s | mem 1,350 MB
+step  2300 | loss 2.4400 | ce 2.4400 | lr 1.37e-04 | 10,538 tok/s | mem 1,367 MB
+step  2325 | loss 2.4433 | ce 2.4433 | lr 1.32e-04 | 10,247 tok/s | mem 1,355 MB
+step  2350 | loss 2.4271 | ce 2.4271 | lr 1.27e-04 | 10,355 tok/s | mem 1,390 MB
+step  2375 | loss 2.4413 | ce 2.4413 | lr 1.22e-04 | 10,083 tok/s | mem 1,343 MB
+step  2400 | loss 2.4273 | ce 2.4273 | lr 1.17e-04 | 10,240 tok/s | mem 1,347 MB
+step  2425 | loss 2.4382 | ce 2.4382 | lr 1.13e-04 | 10,690 tok/s | mem 1,370 MB
+step  2450 | loss 2.4208 | ce 2.4208 | lr 1.08e-04 | 10,377 tok/s | mem 1,382 MB
+step  2475 | loss 2.4339 | ce 2.4339 | lr 1.04e-04 | 10,074 tok/s | mem 1,344 MB
+step  2500 | loss 2.4072 | ce 2.4072 | lr 1.00e-04 | 10,354 tok/s | mem 1,566 MB | val 2.3191 ppl 10.17 kl(teacher) 0.5068
+step  2525 | loss 2.4405 | ce 2.4405 | lr 9.63e-05 | 10,578 tok/s | mem 1,366 MB
+step  2550 | loss 2.4368 | ce 2.4368 | lr 9.27e-05 | 10,597 tok/s | mem 1,354 MB
+step  2575 | loss 2.3954 | ce 2.3954 | lr 8.92e-05 | 10,705 tok/s | mem 1,385 MB
+step  2600 | loss 2.4032 | ce 2.4032 | lr 8.60e-05 | 10,760 tok/s | mem 1,387 MB
+step  2625 | loss 2.4177 | ce 2.4177 | lr 8.29e-05 | 10,805 tok/s | mem 1,390 MB
+step  2650 | loss 2.4164 | ce 2.4164 | lr 8.00e-05 | 10,743 tok/s | mem 1,405 MB
+step  2675 | loss 2.4001 | ce 2.4001 | lr 7.72e-05 | 10,541 tok/s | mem 1,411 MB
+step  2700 | loss 2.4163 | ce 2.4163 | lr 7.47e-05 | 10,583 tok/s | mem 1,397 MB
+step  2725 | loss 2.4092 | ce 2.4092 | lr 7.24e-05 | 10,348 tok/s | mem 1,382 MB
+step  2750 | loss 2.3875 | ce 2.3875 | lr 7.03e-05 | 10,493 tok/s | mem 1,625 MB | val 2.3001 ppl 9.98 kl(teacher) 0.4887
+step  2775 | loss 2.3846 | ce 2.3846 | lr 6.83e-05 | 10,609 tok/s | mem 1,386 MB
+step  2800 | loss 2.4148 | ce 2.4148 | lr 6.66e-05 | 10,541 tok/s | mem 1,411 MB
+step  2825 | loss 2.4077 | ce 2.4077 | lr 6.51e-05 | 10,540 tok/s | mem 1,364 MB
+step  2850 | loss 2.3909 | ce 2.3909 | lr 6.37e-05 | 10,361 tok/s | mem 1,413 MB
+step  2875 | loss 2.3958 | ce 2.3958 | lr 6.26e-05 | 10,591 tok/s | mem 1,367 MB
+step  2900 | loss 2.4039 | ce 2.4039 | lr 6.17e-05 | 10,654 tok/s | mem 1,399 MB
+step  2925 | loss 2.3992 | ce 2.3992 | lr 6.09e-05 | 11,036 tok/s | mem 1,419 MB
+step  2950 | loss 2.3910 | ce 2.3910 | lr 6.04e-05 | 10,887 tok/s | mem 1,398 MB
+step  2975 | loss 2.3833 | ce 2.3833 | lr 6.01e-05 | 10,923 tok/s | mem 1,444 MB
+step  3000 | loss 2.3781 | ce 2.3781 | lr 6.00e-05 | 10,992 tok/s | mem 1,620 MB | val 2.2891 ppl 9.87 kl(teacher) 0.4769
+done in 77.5 min | best val loss 2.2891 (ppl 9.87)

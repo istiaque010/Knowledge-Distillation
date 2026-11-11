@@ -1,0 +1,72 @@
+{
+  "run": "student_kd_T2_a0.75",
+  "checkpoint": "checkpoints\\student_kd_T2_a0.75\\model_best.pt",
+  "step": 3000,
+  "val_loss": 2.2062969572758786,
+  "val_perplexity": 9.082022928447225,
+  "test_loss": 2.2062404824295285,
+  "test_perplexity": 9.08151003708066,
+  "closeness": {
+    "kl_teacher": 0.41444006924821153,
+    "top1_agreement": 0.7061938178426052,
+    "tokens": 2264064
+  },
+  "generation": {
+    "setting": "top_p_0.95",
+    "n": 40,
+    "distinct_1": 0.31367551251928033,
+    "distinct_1_std": 0.011621560509541218,
+    "distinct_2": 0.7586243535622418,
+    "distinct_2_std": 0.01667997366879302,
+    "rep4_rate": 0.017479141356512996,
+    "repetition_flag_rate": 0.025,
+    "eos_rate": 0.975,
+    "hit_token_limit_rate": 0.025,
+    "avg_new_tokens": 214.075,
+    "madeup_rate": 0.00014112334180073385,
+    "madeup_examples": [
+      "oough"
+    ],
+    "known_words": 23116
+  },
+  "error_analysis": {
+    "setting": "top_p_0.90",
+    "n": 60,
+    "csv": "results\\generations\\student_kd_T2_a0.75\\error_analysis.csv",
+    "auto_flag_counts": {
+      "repetition": 8,
+      "incomplete": 1,
+      "hit_token_limit": 1
+    }
+  },
+  "params": {
+    "total": 5322240,
+    "trainable": 5322240,
+    "non_embedding": 3159552
+  },
+  "model_size_mb_fp32": 20.302734375,
+  "reference_real_stories": {
+    "n": 10995,
+    "distinct_1": 0.33079274060478947,
+    "distinct_1_std": 0.015455023615485798,
+    "distinct_2": 0.7640953404476193,
+    "distinct_2_std": 0.026180771085929654,
+    "rep4_rate": 0.016413961582654783,
+    "rep4_flag_threshold": 0.05693333568232272,
+    "proper_ending_rate": 0.9874488403819918
+  },
+  "peak_mem_mb": 1375.40625,
+  "env": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 198 Stepping 2, GenuineIntel",
+    "cpu_count": 24,
+    "ram_gb": 63.7,
+    "torch": "2.14.1+cpu",
+    "device": "cpu",
+    "torch_threads": 24,
+    "cuda_available": false,
+    "hip_version": null,
+    "cuda_version": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "run": {
+    "run_name": "student_kd_T2_a0.75",
+    "mode": "kd",
+    "temperature": 2.0,
+    "alpha": 0.75
+  },
+  "best_val_loss": 2.230269423723221,
+  "best_val_ppl": 9.302372021593143,
+  "steps": 3000,
+  "tokens": 49152000,
+  "wall_clock_s": 7170.0,
+  "peak_mem_mb": 1965.3
+}

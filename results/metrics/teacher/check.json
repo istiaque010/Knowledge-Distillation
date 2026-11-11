@@ -1,0 +1,53 @@
+{
+  "teacher_dir": "D:\\TTI\\Projrcts List\\project1\\teacher",
+  "data_dir": "D:\\TTI\\Projrcts List\\project1\\data\\full",
+  "quick": false,
+  "torch": "2.14.1+cpu",
+  "manifest_problems": [],
+  "same_data": {
+    "tokenizer": true,
+    "val.bin": true,
+    "test.bin": true,
+    "train.bin exists": true
+  },
+  "params": {
+    "total": 13891584,
+    "trainable": 13891584,
+    "non_embedding": 10647552
+  },
+  "model_config": {
+    "vocab_size": 8192,
+    "block_size": 256,
+    "n_layer": 6,
+    "n_head": 6,
+    "n_embd": 384,
+    "dropout": 0.1,
+    "bias": true
+  },
+  "scores": {
+    "test": {
+      "loss": 1.747323147261752,
+      "perplexity": 5.739219051110147,
+      "expected_loss": 1.747323147261752,
+      "windows": 8844,
+      "seconds": 77.0
+    },
+    "val": {
+      "loss": 1.74668337010944,
+      "perplexity": 5.735548404212346,
+      "expected_loss": 1.74668337010944,
+      "windows": 8851,
+      "seconds": 74.6
+    }
+  },
+  "story": {
+    "prompt": "Once upon a time",
+    "completion": ", there was a little girl called outdoors. She was very alert and had an open chest. One day she decided to explore a forest. As she was walking, she saw a bush filled with coins. She was so excited! She excitedly picked up one of the coins and ran back home to share it with her friends. When she got home, the palm was filled with copper coins. She was so excited to show her friends. Together, they went to the backyard and gave all the coins to each of them. Everyone was so happy and they all started talking about their friendship. From then on, the little girl was known as the most alert two of them in the world. The end!",
+    "text": "Once upon a time, there was a little girl called outdoors. She was very alert and had an open chest. One day she decided to explore a forest. As she was walking, she saw a bush filled with coins. She was so excited! She excitedly picked up one of the coins and ran back home to share it with her friends. When she got home, the palm was filled with copper coins. She was so excited to show her friends. Together, they went to the backyard and gave all the coins to each of them. Everyone was so happy and they all started talking about their friendship. From then on, the little girl was known as the most alert two of them in the world. The end!",
+    "new_tokens": 140,
+    "ended_with_eos": true,
+    "latency_s": 0.7699912999523804,
+    "tokens_per_s": 183.11895213455017
+  },
+  "all_passed": true
+}

@@ -1,0 +1,8 @@
+{
+  "teacher_ppl": 5.739219051110147,
+  "scratch_ppl": 9.630297435824307,
+  "distilled_ppl": 8.590030848660648,
+  "gap_closed": 0.2673466027439273,
+  "ppl_increase_scratch_pct": 67.79804621608758,
+  "ppl_increase_distilled_pct": 49.6724688875408
+}

@@ -1,0 +1,14 @@
+{
+  "run": {
+    "run_name": "smoke_kd",
+    "mode": "kd",
+    "temperature": 2.0,
+    "alpha": 0.5
+  },
+  "best_val_loss": 5.264395666122437,
+  "best_val_ppl": 193.32943794759277,
+  "steps": 60,
+  "tokens": 122880,
+  "wall_clock_s": 20.7,
+  "peak_mem_mb": 1338.6
+}

@@ -1,0 +1,6 @@
+mode,shape,student_params,threads,batch,tokens_per_s,ms_per_micro_batch,peak_mem_mb,max_steps,tokens_per_run,est_run_time
+student alone,4L/4H/256d,5322240,24,8,10532,194.5,966,3000,49152000,1h 17m
+student + teacher (KD),4L/4H/256d,5322240,24,8,6780,302.1,1370,3000,49152000,2h 00m
+student alone,3L/4H/256d,4532480,24,8,13107,156.3,891,3000,49152000,1h 02m
+student + teacher (KD),3L/4H/256d,4532480,24,8,8498,241.0,1278,3000,49152000,1h 36m
+teacher forward,4L/4H/256d,5322240,24,8,42316,48.4,560,3000,49152000,0h 19m

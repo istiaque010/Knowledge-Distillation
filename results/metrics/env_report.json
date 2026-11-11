@@ -1,0 +1,55 @@
+{
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 198 Stepping 2, GenuineIntel",
+  "cpu_count": 24,
+  "ram_gb": 63.7,
+  "torch": "2.14.1+cpu",
+  "device": "cpu",
+  "torch_threads": 24,
+  "cuda_available": false,
+  "hip_version": null,
+  "cuda_version": null,
+  "tokenizers": "0.23.3",
+  "numpy": "2.5.4",
+  "version_check": {
+    "python": {
+      "project2": "3.12.10",
+      "teacher": "3.12.10",
+      "same": true
+    },
+    "torch": {
+      "project2": "2.14.1+cpu",
+      "teacher": "2.14.1+cpu",
+      "same": true
+    },
+    "tokenizers": {
+      "project2": "0.23.3",
+      "teacher": "0.23.3",
+      "same": true
+    },
+    "numpy": {
+      "project2": "2.5.4",
+      "teacher": "2.5.4",
+      "same": true
+    }
+  },
+  "smoke_params": 134912,
+  "smoke_loss_first_last": [
+    6.257,
+    0.538
+  ],
+  "smoke_ok": true,
+  "tokenizer_ok": true,
+  "tokenizer_sample_ids": [
+    1607,
+    399,
+    527,
+    768,
+    347,
+    353,
+    645,
+    17
+  ],
+  "all_ok": true
+}

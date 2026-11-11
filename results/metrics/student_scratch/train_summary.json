@@ -1,0 +1,14 @@
+{
+  "run": {
+    "run_name": "student_scratch",
+    "mode": "scratch",
+    "temperature": null,
+    "alpha": 1.0
+  },
+  "best_val_loss": 2.2890824723243712,
+  "best_val_ppl": 9.865881307927491,
+  "steps": 3000,
+  "tokens": 49152000,
+  "wall_clock_s": 4649.8,
+  "peak_mem_mb": 1712.0
+}

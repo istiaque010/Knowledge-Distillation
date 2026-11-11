@@ -1,0 +1,69 @@
+{
+  "run": "teacher",
+  "checkpoint": "teacher.pt",
+  "step": 10000,
+  "val_loss": 1.74668337010944,
+  "val_perplexity": 5.735548404212346,
+  "test_loss": 1.747323147261752,
+  "test_perplexity": 5.739219051110147,
+  "generation": {
+    "setting": "top_p_0.95",
+    "n": 40,
+    "distinct_1": 0.3115769712140175,
+    "distinct_1_std": 0.005151012381950667,
+    "distinct_2": 0.7423520923520923,
+    "distinct_2_std": 0.021297902060345285,
+    "rep4_rate": 0.02590803936719859,
+    "repetition_flag_rate": 0.025,
+    "eos_rate": 0.925,
+    "hit_token_limit_rate": 0.075,
+    "avg_new_tokens": 230.05,
+    "madeup_rate": 0.00038814853150472245,
+    "madeup_examples": [
+      "cloprope",
+      "funnymarket",
+      "remophone"
+    ],
+    "known_words": 23116
+  },
+  "error_analysis": {
+    "setting": "top_p_0.90",
+    "n": 60,
+    "csv": "results\\generations\\teacher\\error_analysis.csv",
+    "auto_flag_counts": {
+      "repetition": 13,
+      "incomplete": 4,
+      "hit_token_limit": 4
+    }
+  },
+  "params": {
+    "total": 13891584,
+    "trainable": 0,
+    "non_embedding": 10647552
+  },
+  "model_size_mb_fp32": 52.9921875,
+  "reference_real_stories": {
+    "n": 10995,
+    "distinct_1": 0.33079274060478947,
+    "distinct_1_std": 0.015455023615485798,
+    "distinct_2": 0.7640953404476193,
+    "distinct_2_std": 0.026180771085929654,
+    "rep4_rate": 0.016413961582654783,
+    "rep4_flag_threshold": 0.05693333568232272,
+    "proper_ending_rate": 0.9874488403819918
+  },
+  "peak_mem_mb": 734.53125,
+  "env": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 198 Stepping 2, GenuineIntel",
+    "cpu_count": 24,
+    "ram_gb": 63.7,
+    "torch": "2.14.1+cpu",
+    "device": "cpu",
+    "torch_threads": 24,
+    "cuda_available": false,
+    "hip_version": null,
+    "cuda_version": null
+  }
+}
