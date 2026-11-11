@@ -468,7 +468,7 @@ Student learns:     to match the teacher's whole opinion, not just the one answe
         <div class="use">Used for: training on the same data, and scoring on the same test stories, so 5.74 and 8.59 can be compared.</div></div>
       <div><b>MANIFEST.sha256</b>A fingerprint (SHA-256 hash) of every file.
         <div class="use">Used for: proving before each run that the teacher hasn't changed.</div></div>
-      <div><b>results/ (eval.json, error_analysis.csv, …)</b>The teacher's scores, the real-story reference numbers, and its 60 hand-labelled stories.
+      <div><b>results/ (eval.json, error_analysis.csv, …)</b>The teacher's scores, the real-story reference numbers, and its 60 labelled stories (AI-assisted labels).
         <div class="use">Used for: the teacher's column in every table, and checking that our re-evaluation gives the same numbers.</div></div>
       <div><b>load_teacher.py, verify_teacher.py</b>Helpers that load the teacher and re-check its score.
         <div class="use">Used for: showing how to load it. Project 2's own <code>kd/teacher.py</code> and <code>scripts/check_teacher.py</code> do the same load-and-check, adding the freezing steps.</div></div>
@@ -828,7 +828,7 @@ python -m kd.evaluate --ckpt checkpoints\student_kd_T2_a0.5\model_best.pt</code>
   <div class="phase-head"><div class="phase-num">13</div><div><h3>Error analysis</h3>
     <div class="sub">Which skills were lost when the teacher was compressed?</div></div></div>
   <div class="part"><h4>What and why</h4>
-    <p>60 stories per model, labelled by hand with <b>Project 1's strict rules</b> (one slip anywhere counts):</p>
+    <p>60 stories per model, labelled with <b>Project 1's strict rules</b> (one slip anywhere counts). <b>The labels were produced by an AI assistant (Claude), not by a human</b>, and have not yet been checked by a person:</p>
     <ul><li><b>Contradiction:</b> something clashes with an earlier fact or doesn't follow from it.</li>
       <li><b>Grammar:</b> at least one broken sentence or made-up word.</li>
       <li><b>Entity consistency:</b> a character changes name, gender or species, or the wrong character speaks.</li></ul>
@@ -867,7 +867,7 @@ python -m kd.evaluate --ckpt checkpoints\student_kd_T2_a0.5\model_best.pt</code>
       setting), and it writes in the teacher's style. But the skill that needs the most capacity, keeping a whole story
       consistent, is lost in compression, and distillation does not bring it back.</b></p>
     <div class="warn"><b>Limits:</b> one run per setting; every student had 3,000 steps (30% of the teacher's training), so longer
-      training would improve all of them; one person labelled the errors; CPU only.</div></div>
+      training would improve all of them; the error labels were produced by an AI assistant and are not yet human-verified; CPU only.</div></div>
   <div class="decide"><h4>How we decided we were done</h4><p>Success was defined in advance as "the distilled student keeps clearly more of
     the teacher's ability than a same-size student trained alone, while being cheaper to run". Both parts hold. <b>Project 2 is finished.</b></p></div>
 </div>

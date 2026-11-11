@@ -119,7 +119,7 @@ def fig_errors():
     ax.set_ylim(0, 112)
     ax.set_ylabel("Share of 60 stories (%)")
     ax.legend(frameon=False, ncol=3, loc="upper right", bbox_to_anchor=(1, 1.13))
-    ax.set_title("Stories with each kind of error (hand-labelled)", loc="left", color=INK, fontsize=13, pad=26)
+    ax.set_title("Stories with each kind of error (AI-assisted labels)", loc="left", color=INK, fontsize=13, pad=26)
     clean_axes(ax, axis="y")
     fig.tight_layout()
     fig.savefig(os.path.join(OUT, "errors.png"), dpi=150)

@@ -758,7 +758,7 @@ The key question: **which skills were lost when the teacher was compressed?**
 
 **Files:** `results/generations/<run>/error_analysis.csv` (made by `kd/evaluate.py`), `scripts/error_counts.py`
 
-**Run:** fill in the hand-labelled columns, then:
+**Run:** fill in the labelled columns, then:
 ```
 python scripts\error_counts.py --run teacher --run student_scratch --run student_kd_T2_a0.5
 ```
@@ -804,7 +804,8 @@ to the teacher on grammar is significant (p = 0.002). Distillation did **not** f
 teacher (20% vs 22%), the scratch student much less (7%, p = 0.06). Reading the flagged stories: the distilled
 student's repeats are the teacher's "They wished they had not…" / "He liked his mom." lists, not loops.
 
-**Caveats:** one labeller (me), labelled once; small samples, so treat each rate as ±10%. "Teacher–student
+**Caveats:** the labels were produced by the AI assistant (Claude), not by a human, labelled once and not yet
+human-verified; small samples, so treat each rate as ±10%. "Teacher–student
 gap" story-by-story isn't possible: with the same prompt and seed, different models still write different
 stories, so the comparison is between rates.
 
@@ -876,7 +877,7 @@ configs/      student.yaml (every student run), smoke.yaml
 kd/           __init__.py (paths to project1), teacher.py, model.py, distillation.py, train_student.py, evaluate.py
 scripts/      check_teacher.py, env_report.py, benchmark.py, show_soft_targets.py, plot_curves.py,
               benchmark_inference.py, compare_generations.py, error_counts.py, final_table.py,
-              run_remaining.ps1, run_alpha.ps1, error_labels/ (Phase 13 hand labels)
+              run_remaining.ps1, run_alpha.ps1, error_labels/ (Phase 13 labels, AI-assisted)
 tests/        test_teacher_frozen.py, test_distillation.py
 checkpoints/  student_scratch/, student_kd_T<T>_a<α>/            (not in git)
 results/      metrics/, generations/, figures/, final_comparison.md

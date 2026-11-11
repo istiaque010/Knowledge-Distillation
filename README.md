@@ -291,9 +291,11 @@ The distilled student also reaches the "student alone" final score in about **37
 
 ## 8. What the small model loses
 
-We read 60 stories from each model and marked errors by hand, using Project 1's rules. The two students' stories were
-mixed together and labelled **without knowing which model wrote which**
-([scripts/error_labels/](scripts/error_labels/)).
+60 stories from each model were checked for errors using Project 1's rules. The two students' stories were mixed
+together and labelled **without knowing which model wrote which** ([scripts/error_labels/](scripts/error_labels/)).
+**The labels were produced by an AI assistant (Claude), not by a human annotator**, for all three models (the
+teacher's labels come from Project 1 and were produced the same way). They have not yet been checked by a person,
+so treat them as indicative.
 
 | Error (share of stories) | Teacher | Student alone | Distilled student |
 |---|---|---|---|
@@ -319,7 +321,8 @@ Stories side by side: [results/generations/comparison.md](results/generations/co
 - **Short training:** each student trained for 3,000 steps, only 30% of the teacher's training (chosen to fit a CPU
   budget). The curves were still improving, so longer training would raise every student.
 - **One run per setting:** very small differences (like T = 2 vs T = 4) can't be told apart from noise.
-- **Small hand-labelled sample:** 60 stories per model, labelled by one person.
+- **Small, AI-labelled sample:** 60 stories per model, labelled with an AI assistant and not yet verified by a
+  human annotator.
 - **CPU only, 32-bit:** the speed numbers are for one PC (Intel Core Ultra 7, 24 threads).
 
 ---

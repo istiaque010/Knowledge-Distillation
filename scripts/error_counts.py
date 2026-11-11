@@ -1,6 +1,7 @@
-"""Phase 13: error rates for each model, from hand-labelled error-analysis sheets.
+"""Phase 13: error rates for each model, from labelled error-analysis sheets (labels produced
+with an AI assistant, blinded between the students; not yet human-verified).
 
-Hand labels live in scripts/error_labels/<run>.py (a LABELS dict: id -> (contradiction, grammar,
+Labels live in scripts/error_labels/<run>.py (a LABELS dict: id -> (contradiction, grammar,
 entity_consistency, notes)), so they survive if a CSV is regenerated. This script writes them into
 results/generations/<run>/error_analysis.csv and counts. The teacher's sheet is the one labelled in Project 1
 (../project1/teacher/results/error_analysis.csv): same 60 prompts and seed, same rules.
