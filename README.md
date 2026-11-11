@@ -69,6 +69,8 @@ the data, the order of the data, the number of steps and the settings.
 | Stories with a contradiction | 88% | 100% | 100% |
 | Training time (CPU) | 9.9 h | 1.3 h | 2.0 h |
 
+![Size, speed and quality of the teacher and the two students](results/figures/tradeoff.png)
+
 **The answer, in three points:**
 
 1. ✅ **Smaller and faster:** the student is **2.6× smaller** and writes about **1.8× faster** than the teacher.
@@ -153,6 +155,7 @@ kd/                      the distillation code
 configs/                 student.yaml (all real runs), smoke.yaml (20-second test run)
 scripts/                 one script per phase: checks, benchmarks, plots, comparisons, final table
   try_models.py          ▶ see the teacher and students write a story
+  make_readme_figures.py the figures in this README, drawn from the saved results
 tests/                   12 tests (teacher is frozen, loss is correct)
 results/                 every measured result: scores, training logs, stories, error labels, figures
 INSTRUCTIONS.md          all 14 phases: what to learn, commands, checks and actual results
@@ -276,8 +279,11 @@ Each row is the same student with one setting changed, trained for the same 3,00
 - The main result uses T = 2, α = 0.5 because that was chosen **before** any run. The best setting found afterwards is
   reported separately, so the main claim is not cherry-picked.
 
-The distilled student also reaches the "student alone" final score in about **37% fewer training steps**. Training
-curves: [results/figures/curves.png](results/figures/curves.png).
+![Test perplexity of every model](results/figures/test_perplexity.png)
+
+The distilled student also reaches the "student alone" final score in about **37% fewer training steps**:
+
+![Validation perplexity and distance to the teacher during training, for every run](results/figures/curves.png)
 
 ---
 
@@ -293,6 +299,8 @@ mixed together and labelled **without knowing which model wrote which**
 | Character mix-up (e.g. "The cat thanked the cat") | 55% | 85% | 73% |
 | Grammar (e.g. "a big box of key") | 37% | 80% | 67% |
 | Repeated phrases | 22% | 7% | 20% |
+
+![Share of stories with each kind of error](results/figures/errors.png)
 
 - **Lost the most:** keeping a story consistent from start to end. Distillation doesn't recover it.
 - **Helped a little:** grammar and character mix-ups. The direction is clear, but with 60 stories these two differences
