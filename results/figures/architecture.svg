@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>How knowledge distillation works in this project</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52514e"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#14875e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="600" rx="16" fill="#fcfcfb"/>
+
+  <!-- title -->
+  <text x="30" y="40" font-size="21" font-weight="700" fill="#0b0b0b">How knowledge distillation works in this project</text>
+  <text x="30" y="64" font-size="14" fill="#52514e">One training step: the same text goes into both models; only the student learns.</text>
+
+  <!-- project lane -->
+  <rect x="30" y="80" width="900" height="34" rx="8" fill="#f1efea"/>
+  <text x="46" y="102" font-size="13.5" fill="#52514e"><tspan font-weight="700" fill="#0b0b0b">Project 1</tspan> trained the teacher from scratch (9.9 h, test perplexity 5.74)   →   <tspan font-weight="700" fill="#0b0b0b">Project 2</tspan> uses it, frozen, to train a 2.6× smaller student</text>
+
+  <!-- input -->
+  <rect x="30" y="232" width="160" height="140" rx="12" fill="#ffffff" stroke="#c3c2b7" stroke-width="1.5"/>
+  <text x="110" y="262" font-size="15" font-weight="700" fill="#0b0b0b" text-anchor="middle">Story text</text>
+  <text x="110" y="290" font-size="12.5" fill="#52514e" text-anchor="middle" font-style="italic">"Once upon a time,</text>
+  <text x="110" y="307" font-size="12.5" fill="#52514e" text-anchor="middle" font-style="italic">there was a little …"</text>
+  <text x="110" y="336" font-size="12" fill="#52514e" text-anchor="middle">TinyStories, as tokens</text>
+  <text x="110" y="353" font-size="12" fill="#52514e" text-anchor="middle">(8,192-token vocabulary)</text>
+
+  <!-- teacher -->
+  <rect x="245" y="135" width="240" height="140" rx="12" fill="#e8f1fc" stroke="#2a78d6" stroke-width="2"/>
+  <text x="265" y="164" font-size="16" font-weight="700" fill="#0b0b0b">Teacher</text>
+  <rect x="338" y="149" width="64" height="21" rx="10.5" fill="#2a78d6"/>
+  <text x="370" y="164" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">FROZEN</text>
+  <text x="265" y="190" font-size="13" fill="#0b0b0b">GPT from Project 1 · 13.9M parameters</text>
+  <text x="265" y="210" font-size="13" fill="#52514e">6 layers · 6 heads · width 384</text>
+  <text x="265" y="236" font-size="12.5" fill="#52514e">eval mode · no gradients</text>
+  <text x="265" y="256" font-size="12.5" fill="#52514e">hash-checked · never changes</text>
+
+  <!-- student -->
+  <rect x="245" y="330" width="240" height="140" rx="12" fill="#e3f6ee" stroke="#1baf7a" stroke-width="2"/>
+  <text x="265" y="359" font-size="16" font-weight="700" fill="#0b0b0b">Student</text>
+  <rect x="335" y="344" width="78" height="21" rx="10.5" fill="#14875e"/>
+  <text x="374" y="359" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">LEARNING</text>
+  <text x="265" y="385" font-size="13" fill="#0b0b0b">same GPT code · 5.3M parameters</text>
+  <text x="265" y="405" font-size="13" fill="#52514e">4 layers · 4 heads · width 256</text>
+  <text x="265" y="431" font-size="12.5" fill="#52514e">the only model that is updated</text>
+  <text x="265" y="451" font-size="12.5" fill="#52514e">2.6× smaller than the teacher</text>
+
+  <!-- input arrows -->
+  <path d="M190,290 C215,290 220,205 243,205" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M190,315 C215,315 220,400 243,400" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- teacher probabilities -->
+  <rect x="525" y="140" width="185" height="130" rx="12" fill="#ffffff" stroke="#2a78d6" stroke-width="1.5"/>
+  <text x="540" y="163" font-size="13" font-weight="700" fill="#0b0b0b">Soft targets</text>
+  <text x="540" y="180" font-size="11.5" fill="#52514e">teacher's probabilities (T = 1)</text>
+  <g font-size="11.5" fill="#0b0b0b">
+    <text x="540" y="203">girl</text><rect x="585" y="194" width="74" height="11" rx="2" fill="#2a78d6"/><text x="664" y="203">68%</text>
+    <text x="540" y="221">boy</text><rect x="585" y="212" width="21" height="11" rx="2" fill="#2a78d6"/><text x="611" y="221">19%</text>
+    <text x="540" y="239">bird</text><rect x="585" y="230" width="4" height="11" rx="2" fill="#2a78d6"/><text x="594" y="239">2%</text>
+    <text x="540" y="257">bunny</text><rect x="585" y="248" width="3" height="11" rx="2" fill="#2a78d6"/><text x="593" y="257">2%  …</text>
+  </g>
+
+  <!-- hard label -->
+  <rect x="525" y="285" width="185" height="58" rx="12" fill="#f1efea" stroke="#c3c2b7" stroke-width="1.5"/>
+  <text x="540" y="308" font-size="13" font-weight="700" fill="#0b0b0b">Hard label</text>
+  <text x="540" y="328" font-size="12" fill="#52514e">real next token: "girl"</text>
+
+  <!-- student probabilities -->
+  <rect x="525" y="358" width="185" height="112" rx="12" fill="#ffffff" stroke="#1baf7a" stroke-width="1.5"/>
+  <text x="540" y="381" font-size="13" font-weight="700" fill="#0b0b0b">Student's probabilities</text>
+  <g font-size="11.5" fill="#0b0b0b">
+    <text x="540" y="403">girl</text><rect x="585" y="394" width="44" height="11" rx="2" fill="#1baf7a"/><text x="634" y="403">40%</text>
+    <text x="540" y="421">boy</text><rect x="585" y="412" width="30" height="11" rx="2" fill="#1baf7a"/><text x="620" y="421">27%</text>
+    <text x="540" y="439">bird</text><rect x="585" y="430" width="11" height="11" rx="2" fill="#1baf7a"/><text x="601" y="439">10%</text>
+    <text x="540" y="457" fill="#52514e" font-style="italic">(example, mid-training)</text>
+  </g>
+
+  <!-- model -> outputs -->
+  <path d="M485,205 L523,205" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M485,410 L523,410" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+  <text x="504" y="197" font-size="11" fill="#52514e" text-anchor="middle">÷T</text>
+  <text x="504" y="402" font-size="11" fill="#52514e" text-anchor="middle">÷T</text>
+
+  <!-- loss -->
+  <rect x="755" y="215" width="175" height="190" rx="12" fill="#fff6e8" stroke="#b26a00" stroke-width="2"/>
+  <text x="842" y="243" font-size="16" font-weight="700" fill="#0b0b0b" text-anchor="middle">Loss</text>
+  <text x="842" y="272" font-size="13" fill="#0b0b0b" text-anchor="middle">α · CE</text>
+  <text x="842" y="289" font-size="11" fill="#52514e" text-anchor="middle">learn from the real text</text>
+  <text x="842" y="313" font-size="13" fill="#0b0b0b" text-anchor="middle">+ (1 − α) · T² · KL</text>
+  <text x="842" y="330" font-size="11" fill="#52514e" text-anchor="middle">copy the teacher</text>
+  <line x1="772" y1="347" x2="912" y2="347" stroke="#e2ded6"/>
+  <text x="842" y="368" font-size="11.5" fill="#52514e" text-anchor="middle">main run: T = 2, α = 0.5</text>
+  <text x="842" y="386" font-size="11.5" fill="#52514e" text-anchor="middle">best: T = 2, α = 0.25</text>
+
+  <!-- outputs -> loss -->
+  <path d="M710,205 C735,205 735,265 753,265" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M710,314 L753,314" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M710,410 C735,410 735,355 753,355" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- backprop -->
+  <path d="M842,405 L842,500 L365,500 L365,472" fill="none" stroke="#14875e" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#ag)"/>
+  <text x="603" y="492" font-size="13" font-weight="700" fill="#14875e" text-anchor="middle">gradients update the STUDENT only (AdamW)</text>
+
+  <!-- outcome -->
+  <rect x="30" y="525" width="900" height="50" rx="10" fill="#e3f6ee"/>
+  <text x="46" y="555" font-size="14" fill="#0b0b0b"><tspan font-weight="700">After training:</tspan> drop the teacher and keep the student   →   2.6× smaller · ~1.8× faster · test perplexity 8.59 (trained alone: 9.63, teacher: 5.74)</text>
+</svg>

@@ -7,6 +7,8 @@ This project takes a 13.9-million-parameter story-writing model (the **teacher**
 **2.6× smaller** (the **student**) to imitate it. This technique is called **knowledge distillation**.
 Everything runs on a normal computer's **CPU**, with plain PyTorch.
 
+![How knowledge distillation works in this project: a frozen 13.9M teacher and a learning 5.3M student read the same text; the loss mixes learning from the real text and copying the teacher; only the student is updated](results/figures/architecture.svg)
+
 > **Main question:** how much can the model be compressed through knowledge distillation while keeping its
 > text-generation quality?
 
